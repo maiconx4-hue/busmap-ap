@@ -6,7 +6,7 @@ import { useMapData, type BusGroup } from "@/hooks/useMapData";
 import { useGpsShare } from "@/hooks/useGpsShare";
 import { useAuth } from "@/hooks/useAuth";
 import { formatAge, groupState } from "@/lib/freshness";
-import { formatDistance, haversine, type LatLng } from "@/lib/geo";
+import { formatDistance, type LatLng } from "@/lib/geo";
 import { levelLabel } from "@/lib/levels";
 import { ShareFlow } from "@/components/ShareFlow";
 import { IndicatorGrid } from "@/components/IndicatorGrid";
@@ -156,7 +156,7 @@ function Index() {
       <section className="absolute inset-x-0 bottom-0 z-[500] mx-auto max-w-lg p-3">
         <div className="space-y-3 rounded-3xl bg-card p-4 shadow-[var(--shadow-sheet)]">
           {sharing ? (
-            <SharePanel share={share} routeName={routeById.get(share.start?.session_id ? share.start && routes.find((r) => r.id === shareCtx.route)?.id || "" : "")?.code} timeout={timeout} />
+            <SharePanel share={share} timeout={timeout} />
           ) : group ? (
             <GroupPanel
               group={group}
@@ -348,7 +348,7 @@ function GroupPanel({
   );
 }
 
-function SharePanel({ share, timeout }: { share: ReturnType<typeof useGpsShare>; routeName?: string; timeout: number }) {
+function SharePanel({ share, timeout }: { share: ReturnType<typeof useGpsShare>; timeout: number }) {
   const ack = share.lastAck ? Math.round((Date.now() - share.lastAck) / 1000) : null;
   const isActive = share.status === "active" && ack !== null && ack <= timeout;
   const label =
