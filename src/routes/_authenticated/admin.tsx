@@ -26,6 +26,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 type RouteRow = Tables<"routes">;
+type AdminStats = Partial<Record<
+  | "routes_total" | "routes_published" | "routes_draft" | "routes_inactive" | "sessions_active" | "groups_active" | "groups_stale"
+  | "sessions_24h" | "valid_24h" | "inconclusive_24h" | "invalid_24h" | "updates_24h" | "rejected_24h" | "visitors" | "users"
+  | "last_maintenance",
+  number | string | null
+>>;
 const STATUS_PT = { draft: "Rascunho", published: "Publicada", inactive: "Desativada" } as const;
 
 function Admin() {
@@ -56,7 +62,7 @@ function AdminPanel() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("admin_stats");
       if (error) throw error;
-      return data as Record<string, number | string | null>;
+      return data as unknown as AdminStats;
     },
     refetchInterval: 15000,
   });
@@ -90,17 +96,17 @@ function AdminPanel() {
   };
   const setStatus = async (r: RouteRow, status: RouteRow["status"]) => {
     const { error } = await supabase.from("routes").update({ status }).eq("id", r.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     refresh();
   };
   const remove = async (r: RouteRow) => {
     if (!confirm(`Excluir a rota ${r.code}? Posições ligadas a ela também serão removidas.`)) return;
     const { error } = await supabase.from("routes").delete().eq("id", r.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     refresh();
   };
 
-  const s = stats.data ?? {};
+  const s: AdminStats = stats.data ?? {};
   const lastMaint = s.last_maintenance ? new Date(String(s.last_maintenance)) : null;
   const maintOk = lastMaint && Date.now() - lastMaint.getTime() < 15 * 60_000;
 
@@ -227,9 +233,9 @@ function SettingRow({ row, onSaved }: { row: Tables<"settings">; onSaved: () => 
   const [v, setV] = useState(String(row.value));
   const save = async () => {
     const n = Number(v);
-    if (!Number.isFinite(n) || n < 0) return toast.error("Valor inválido.");
+    if (!Number.isFinite(n) || n < 0) { toast.error("Valor inválido."); return; }
     const { error } = await supabase.from("settings").update({ value: n, updated_at: new Date().toISOString() }).eq("key", row.key);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Configuração salva.");
     onSaved();
   };

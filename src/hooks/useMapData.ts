@@ -12,6 +12,14 @@ export type BusGroup = Pick<
   "id" | "route_id" | "lat" | "lng" | "accuracy_m" | "divergence_m" | "active_contributors" | "status" | "signal" | "confidence" | "top_level" | "last_update"
 >;
 
+export type Settings = Partial<
+  Record<
+    | "session_timeout_s" | "update_interval_s" | "max_contributors" | "stale_retention_s" | "gps_retention_h"
+    | "max_accuracy_m" | "group_join_radius_m" | "stale_join_radius_m",
+    number
+  >
+>;
+
 const ROUTE_COLS = "id,code,name,description,color,direction,origin_label,dest_label,geometry,distance_m";
 const GROUP_COLS = "id,route_id,lat,lng,accuracy_m,divergence_m,active_contributors,status,signal,confidence,top_level,last_update";
 
@@ -36,7 +44,7 @@ export const settingsQuery = queryOptions({
   queryFn: async () => {
     const { data, error } = await supabase.from("settings").select("key,value");
     if (error) throw error;
-    return Object.fromEntries(data.map((r) => [r.key, Number(r.value)])) as Record<string, number>;
+    return Object.fromEntries(data.map((r) => [r.key, Number(r.value)])) as Settings;
   },
   staleTime: 5 * 60_000,
 });
@@ -84,7 +92,7 @@ export function useMapData() {
   return {
     routes: routes.data ?? [],
     groups: groups.data ?? [],
-    settings: settings.data ?? {},
+    settings: settings.data ?? ({} as Settings),
     loading: routes.isLoading || groups.isLoading,
     error: routes.error || groups.error,
     live,

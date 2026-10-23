@@ -73,15 +73,15 @@ function Profile() {
       .from("profiles")
       .update({ nickname: nick.trim() || null, is_anonymous: anon })
       .eq("id", profile.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Perfil atualizado.");
     qc.invalidateQueries({ queryKey: ["my-profile"] });
   };
   const link = async () => {
     const v = readVisitor();
-    if (!v) return toast.info("Este navegador não tem progresso anônimo para vincular.");
+    if (!v) { toast.info("Este navegador não tem progresso anônimo para vincular."); return; }
     const { data, error } = await supabase.rpc("claim_visitor", { p_visitor: v.visitor_id, p_secret: v.secret });
-    if (error) return toast.error(friendlyError(error));
+    if (error) { toast.error(friendlyError(error)); return; }
     toast.success(`Dispositivo vinculado. ${(data as { credited_sessions: number }).credited_sessions} sessão(ões) creditada(s).`);
     qc.invalidateQueries({ queryKey: ["my-profile"] });
   };

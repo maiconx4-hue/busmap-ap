@@ -143,7 +143,7 @@ export function useGpsShare() {
           p_lat: pos.coords.latitude,
           p_lng: pos.coords.longitude,
           p_accuracy: pos.coords.accuracy,
-          p_target_group: targetGroup ?? undefined,
+          ...(targetGroup ? { p_target_group: targetGroup } : {}),
         });
         if (error) throw error;
         const r = data as unknown as StartResult;

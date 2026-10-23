@@ -4,7 +4,7 @@ import { MapPin, ShieldAlert, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { BusGroup, PublicRoute } from "@/hooks/useMapData";
+import type { BusGroup, PublicRoute, Settings } from "@/hooks/useMapData";
 import { formatAge, groupState } from "@/lib/freshness";
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   routes: PublicRoute[];
   groups: BusGroup[];
-  settings: Record<string, number>;
+  settings: Settings;
   initialRouteId: string | null;
   targetGroupId: string | null;
   onConfirm: (routeId: string, targetGroupId: string | null) => void;

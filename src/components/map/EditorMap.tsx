@@ -32,7 +32,7 @@ export default function EditorMap({ points, color, mode, origin, dest, onMapClic
       attribution: "&copy; OpenStreetMap",
     }).addTo(m);
     layer.current = L.layerGroup().addTo(m);
-    m.on("click", (e) => cb.current.onMapClick([+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)]));
+    m.on("click", (e: L.LeafletMouseEvent) => cb.current.onMapClick([+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)]));
     map.current = m;
     return () => {
       m.remove();
@@ -57,7 +57,7 @@ export default function EditorMap({ points, color, mode, origin, dest, onMapClic
           const ll = mk.getLatLng();
           cb.current.onMovePoint(i, [+ll.lat.toFixed(6), +ll.lng.toFixed(6)]);
         });
-        mk.on("click", (ev) => {
+        mk.on("click", (ev: L.LeafletMouseEvent) => {
           L.DomEvent.stopPropagation(ev);
           cb.current.onDeletePoint(i);
         });

@@ -14,7 +14,7 @@ export function haversine(a: LatLng, b: LatLng) {
 
 export function pathLength(points: LatLng[]) {
   let total = 0;
-  for (let i = 1; i < points.length; i++) total += haversine(points[i - 1], points[i]);
+  for (let i = 1; i < points.length; i++) total += haversine(points[i - 1]!, points[i]!);
   return total;
 }
 

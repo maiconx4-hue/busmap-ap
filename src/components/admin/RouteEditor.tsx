@@ -3,7 +3,7 @@ import { ClientOnly } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Redo2, Route as RouteIcon, Trash, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Json, Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +31,7 @@ export function RouteEditor({ initial, onDone }: { initial: RouteRow | null; onD
   const [cursor, setCursor] = useState(0);
   const [mode, setMode] = useState<EditorMode>(method === "osrm" ? "origin" : "draw");
   const [busy, setBusy] = useState(false);
-  const points = history[cursor];
+  const points = history[cursor] ?? [];
 
   const commit = (next: LatLng[]) => {
     const h = history.slice(0, cursor + 1);
@@ -51,7 +51,7 @@ export function RouteEditor({ initial, onDone }: { initial: RouteRow | null; onD
   };
 
   const calc = async () => {
-    if (!origin || !dest) return toast.error("Marque origem e destino no mapa.");
+    if (!origin || !dest) { toast.error("Marque origem e destino no mapa."); return; }
     setBusy(true);
     try {
       const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`;
@@ -73,8 +73,8 @@ export function RouteEditor({ initial, onDone }: { initial: RouteRow | null; onD
   };
 
   const save = async (status: "draft" | "published") => {
-    if (!code.trim() || name.trim().length < 2) return toast.error("Preencha código e nome.");
-    if (status === "published" && points.length < 2) return toast.error("O traçado precisa de pelo menos 2 pontos.");
+    if (!code.trim() || name.trim().length < 2) { toast.error("Preencha código e nome."); return; }
+    if (status === "published" && points.length < 2) { toast.error("O traçado precisa de pelo menos 2 pontos."); return; }
     setBusy(true);
     const row = {
       code: code.trim().toUpperCase(),
@@ -88,14 +88,14 @@ export function RouteEditor({ initial, onDone }: { initial: RouteRow | null; onD
       origin_lng: origin?.[1] ?? points[0]?.[1] ?? null,
       dest_lat: dest?.[0] ?? points.at(-1)?.[0] ?? null,
       dest_lng: dest?.[1] ?? points.at(-1)?.[1] ?? null,
-      geometry: points,
+      geometry: points as unknown as Json,
       distance_m: Math.round(pathLength(points)),
       creation_method: method,
       status,
     };
     const { error } = initial ? await supabase.from("routes").update(row).eq("id", initial.id) : await supabase.from("routes").insert(row);
     setBusy(false);
-    if (error) return toast.error(error.code === "23505" ? "Já existe uma rota com esse código." : error.message);
+    if (error) { toast.error(error.code === "23505" ? "Já existe uma rota com esse código." : error.message); return; }
     toast.success(status === "published" ? "Rota publicada." : "Rascunho salvo.");
     onDone();
   };

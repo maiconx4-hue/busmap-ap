@@ -48,8 +48,8 @@ function Index() {
   const [focus, setFocus] = useState<{ pos: LatLng; zoom: number; key: number } | null>(null);
   const [locMsg, setLocMsg] = useState<string | null>(null);
 
-  const timeout = settings.session_timeout_s ?? 60;
-  const retention = settings.stale_retention_s ?? 900;
+  const timeout = settings["session_timeout_s"] ?? 60;
+  const retention = settings["stale_retention_s"] ?? 900;
   const routeById = useMemo(() => new Map(routes.map((r) => [r.id, r])), [routes]);
   const now = Date.now();
   const visibleGroups = groups
@@ -162,7 +162,7 @@ function Index() {
               group={group}
               route={routeById.get(group.route_id)!}
               timeout={timeout}
-              max={settings.max_contributors ?? 5}
+              max={settings["max_contributors"] ?? 5}
               onClose={() => setSelectedGroup(null)}
               onHelp={() => openShare(group.route_id, group.id)}
             />

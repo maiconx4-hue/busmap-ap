@@ -13,7 +13,7 @@ export function levelForXp(xp: number) {
   LEVELS.forEach((l, i) => {
     if (xp >= l.min) idx = i;
   });
-  const current = LEVELS[idx];
+  const current = LEVELS[idx]!;
   const next = LEVELS[idx + 1] ?? null;
   const progress = next ? Math.min(1, (xp - current.min) / (next.min - current.min)) : 1;
   return { current, next, progress, missing: next ? next.min - xp : 0 };

@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type Search = { next?: string };
+type Search = { next?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+    next: typeof s["next"] === "string" && s["next"].startsWith("/") && !s["next"].startsWith("//") ? s["next"] : undefined,
   }),
   head: () => ({
     meta: [
@@ -39,27 +39,27 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : error.message);
+    if (error) { toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : error.message); return; }
     go();
   };
   const signup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return toast.error("A senha precisa ter pelo menos 8 caracteres.");
+    if (password.length < 8) { toast.error("A senha precisa ter pelo menos 8 caracteres."); return; }
     setBusy(true);
     const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + "/perfil" } });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Enviamos um link de confirmação para seu e-mail.");
   };
   const forgot = async () => {
-    if (!email) return toast.error("Digite seu e-mail acima.");
+    if (!email) { toast.error("Digite seu e-mail acima."); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/reset-password" });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Se o e-mail existir, você receberá um link para redefinir a senha.");
   };
   const google = async () => {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth" + (next ? `?next=${encodeURIComponent(next)}` : "") });
-    if (r.error) return toast.error("Não foi possível entrar com Google.");
+    if (r.error) { toast.error("Não foi possível entrar com Google."); return; }
     if (r.redirected) return;
     go();
   };

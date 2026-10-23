@@ -1,7 +1,7 @@
 import { Award, Clock, Signal, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type Indicator = { label: string; value: string; hint?: string; tone?: "good" | "mid" | "bad" | "neutral" };
+export type Indicator = { label: string; value: string; hint?: string | undefined; tone?: "good" | "mid" | "bad" | "neutral" | undefined };
 
 const toneClass = {
   good: "text-live",

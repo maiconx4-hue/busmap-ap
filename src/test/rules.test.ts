@@ -4,12 +4,12 @@ import { groupState } from "@/lib/freshness";
 import { haversine, pathLength } from "@/lib/geo";
 
 describe("níveis", () => {
-  it("Bronze abaixo de 200 XP", () => expect(levelForXp(199).current.key).toBe("bronze"));
-  it("Prata a partir de 200 XP", () => expect(levelForXp(200).current.key).toBe("prata"));
-  it("Ouro a partir de 800 XP", () => expect(levelForXp(800).current.key).toBe("ouro"));
+  it("Bronze abaixo de 200 XP", () => expect(levelForXp(199).current?.key).toBe("bronze"));
+  it("Prata a partir de 200 XP", () => expect(levelForXp(200).current?.key).toBe("prata"));
+  it("Ouro a partir de 800 XP", () => expect(levelForXp(800).current?.key).toBe("ouro"));
   it("Platina a partir de 2000 XP, sem próximo nível", () => {
     const l = levelForXp(2500);
-    expect(l.current.key).toBe("platina");
+    expect(l.current?.key).toBe("platina");
     expect(l.next).toBeNull();
   });
   it("progresso até o próximo nível", () => expect(levelForXp(500).progress).toBeCloseTo(0.5));
