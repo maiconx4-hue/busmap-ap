@@ -16,7 +16,16 @@ type Props = {
   onDeletePoint: (i: number) => void;
 };
 
-export default function EditorMap({ points, color, mode, origin, dest, onMapClick, onMovePoint, onDeletePoint }: Props) {
+export default function EditorMap({
+  points,
+  color,
+  mode,
+  origin,
+  dest,
+  onMapClick,
+  onMovePoint,
+  onDeletePoint,
+}: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
@@ -32,7 +41,9 @@ export default function EditorMap({ points, color, mode, origin, dest, onMapClic
       attribution: "&copy; OpenStreetMap",
     }).addTo(m);
     layer.current = L.layerGroup().addTo(m);
-    m.on("click", (e: L.LeafletMouseEvent) => cb.current.onMapClick([+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)]));
+    m.on("click", (e: L.LeafletMouseEvent) =>
+      cb.current.onMapClick([+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)]),
+    );
     map.current = m;
     return () => {
       m.remove();
@@ -50,7 +61,11 @@ export default function EditorMap({ points, color, mode, origin, dest, onMapClic
       points.forEach((p, i) => {
         const mk = L.marker(p, {
           draggable: true,
-          icon: L.divIcon({ className: "", html: '<div class="edit-point"></div>', iconSize: [14, 14] }),
+          icon: L.divIcon({
+            className: "",
+            html: '<div class="edit-point"></div>',
+            iconSize: [14, 14],
+          }),
           title: `Ponto ${i + 1} — arraste para mover, clique para excluir`,
         });
         mk.on("dragend", () => {
@@ -65,7 +80,14 @@ export default function EditorMap({ points, color, mode, origin, dest, onMapClic
       });
     }
     const pin = (p: LatLng, cls: string) =>
-      L.marker(p, { icon: L.divIcon({ className: "", html: `<div class="pin-marker ${cls}"></div>`, iconSize: [22, 22], iconAnchor: [11, 22] }) }).addTo(lg);
+      L.marker(p, {
+        icon: L.divIcon({
+          className: "",
+          html: `<div class="pin-marker ${cls}"></div>`,
+          iconSize: [22, 22],
+          iconAnchor: [11, 22],
+        }),
+      }).addTo(lg);
     if (origin) pin(origin, "origin");
     if (dest) pin(dest, "dest");
     if (!fitted.current && points.length >= 2) {

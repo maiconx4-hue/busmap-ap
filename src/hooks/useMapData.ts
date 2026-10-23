@@ -5,28 +5,60 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type PublicRoute = Pick<
   Tables<"routes">,
-  "id" | "code" | "name" | "description" | "color" | "direction" | "origin_label" | "dest_label" | "geometry" | "distance_m"
+  | "id"
+  | "code"
+  | "name"
+  | "description"
+  | "color"
+  | "direction"
+  | "origin_label"
+  | "dest_label"
+  | "geometry"
+  | "distance_m"
 >;
 export type BusGroup = Pick<
   Tables<"bus_groups">,
-  "id" | "route_id" | "lat" | "lng" | "accuracy_m" | "divergence_m" | "active_contributors" | "status" | "signal" | "confidence" | "top_level" | "last_update"
+  | "id"
+  | "route_id"
+  | "lat"
+  | "lng"
+  | "accuracy_m"
+  | "divergence_m"
+  | "active_contributors"
+  | "status"
+  | "signal"
+  | "confidence"
+  | "top_level"
+  | "last_update"
 >;
 
 export type Settings = Partial<
   Record<
-    | "session_timeout_s" | "update_interval_s" | "max_contributors" | "stale_retention_s" | "gps_retention_h"
-    | "max_accuracy_m" | "group_join_radius_m" | "stale_join_radius_m",
+    | "session_timeout_s"
+    | "update_interval_s"
+    | "max_contributors"
+    | "stale_retention_s"
+    | "gps_retention_h"
+    | "max_accuracy_m"
+    | "group_join_radius_m"
+    | "stale_join_radius_m",
     number
   >
 >;
 
-const ROUTE_COLS = "id,code,name,description,color,direction,origin_label,dest_label,geometry,distance_m";
-const GROUP_COLS = "id,route_id,lat,lng,accuracy_m,divergence_m,active_contributors,status,signal,confidence,top_level,last_update";
+const ROUTE_COLS =
+  "id,code,name,description,color,direction,origin_label,dest_label,geometry,distance_m";
+const GROUP_COLS =
+  "id,route_id,lat,lng,accuracy_m,divergence_m,active_contributors,status,signal,confidence,top_level,last_update";
 
 export const routesQuery = queryOptions({
   queryKey: ["public-routes"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("routes").select(ROUTE_COLS).eq("status", "published").order("code");
+    const { data, error } = await supabase
+      .from("routes")
+      .select(ROUTE_COLS)
+      .eq("status", "published")
+      .order("code");
     if (error) throw error;
     return data as PublicRoute[];
   },
@@ -63,7 +95,8 @@ export function useMapData() {
       .channel("public-map")
       .on("postgres_changes", { event: "*", schema: "public", table: "bus_groups" }, (p) => {
         qc.setQueryData<BusGroup[]>(groupsQuery.queryKey, (old = []) => {
-          if (p.eventType === "DELETE") return old.filter((g) => g.id !== (p.old as { id: string }).id);
+          if (p.eventType === "DELETE")
+            return old.filter((g) => g.id !== (p.old as { id: string }).id);
           const row = p.new as BusGroup;
           const i = old.findIndex((g) => g.id === row.id);
           if (i === -1) return [...old, row];
@@ -79,7 +112,8 @@ export function useMapData() {
         if (status === "SUBSCRIBED") {
           setLive("online");
           qc.invalidateQueries({ queryKey: groupsQuery.queryKey });
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") setLive("offline");
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")
+          setLive("offline");
       });
     // re-evaluate freshness labels every 5s
     const t = setInterval(() => setTick((x) => x + 1), 5000);

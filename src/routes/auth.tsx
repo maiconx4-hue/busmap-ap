@@ -13,14 +13,23 @@ type Search = { next?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    next: typeof s["next"] === "string" && s["next"].startsWith("/") && !s["next"].startsWith("//") ? s["next"] : undefined,
+    next:
+      typeof s["next"] === "string" && s["next"].startsWith("/") && !s["next"].startsWith("//")
+        ? s["next"]
+        : undefined,
   }),
   head: () => ({
     meta: [
       { title: "Entrar — BusMap Macapá" },
-      { name: "description", content: "Entre ou crie uma conta opcional para guardar seu nível e conquistas." },
+      {
+        name: "description",
+        content: "Entre ou crie uma conta opcional para guardar seu nível e conquistas.",
+      },
       { property: "og:title", content: "Entrar — BusMap Macapá" },
-      { property: "og:description", content: "Conta opcional para guardar sua experiência de colaborador." },
+      {
+        property: "og:description",
+        content: "Conta opcional para guardar sua experiência de colaborador.",
+      },
     ],
   }),
   component: AuthPage,
@@ -39,27 +48,58 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) { toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha incorretos." : error.message); return; }
+    if (error) {
+      toast.error(
+        error.message === "Invalid login credentials"
+          ? "E-mail ou senha incorretos."
+          : error.message,
+      );
+      return;
+    }
     go();
   };
   const signup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) { toast.error("A senha precisa ter pelo menos 8 caracteres."); return; }
+    if (password.length < 8) {
+      toast.error("A senha precisa ter pelo menos 8 caracteres.");
+      return;
+    }
     setBusy(true);
-    const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + "/perfil" } });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin + "/perfil" },
+    });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Enviamos um link de confirmação para seu e-mail.");
   };
   const forgot = async () => {
-    if (!email) { toast.error("Digite seu e-mail acima."); return; }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/reset-password" });
-    if (error) { toast.error(error.message); return; }
+    if (!email) {
+      toast.error("Digite seu e-mail acima.");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password",
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Se o e-mail existir, você receberá um link para redefinir a senha.");
   };
   const google = async () => {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth" + (next ? `?next=${encodeURIComponent(next)}` : "") });
-    if (r.error) { toast.error("Não foi possível entrar com Google."); return; }
+    const r = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri:
+        window.location.origin + "/auth" + (next ? `?next=${encodeURIComponent(next)}` : ""),
+    });
+    if (r.error) {
+      toast.error("Não foi possível entrar com Google.");
+      return;
+    }
     if (r.redirected) return;
     go();
   };
@@ -91,7 +131,14 @@ function AuthPage() {
             <form onSubmit={mode === "login" ? login : signup} className="space-y-3 pt-2">
               <div className="space-y-1">
                 <Label htmlFor={`${mode}-email`}>E-mail</Label>
-                <Input id={`${mode}-email`} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+                <Input
+                  id={`${mode}-email`}
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                />
               </div>
               <div className="space-y-1">
                 <Label htmlFor={`${mode}-pw`}>Senha</Label>
@@ -108,7 +155,11 @@ function AuthPage() {
                 {mode === "login" ? "Entrar" : "Criar conta"}
               </Button>
               {mode === "login" && (
-                <button type="button" onClick={forgot} className="w-full text-center text-xs text-primary underline">
+                <button
+                  type="button"
+                  onClick={forgot}
+                  className="w-full text-center text-xs text-primary underline"
+                >
                   Esqueci minha senha
                 </button>
               )}

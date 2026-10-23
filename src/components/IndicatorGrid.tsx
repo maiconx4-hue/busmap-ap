@@ -1,7 +1,12 @@
 import { Award, Clock, Signal, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type Indicator = { label: string; value: string; hint?: string | undefined; tone?: "good" | "mid" | "bad" | "neutral" | undefined };
+export type Indicator = {
+  label: string;
+  value: string;
+  hint?: string | undefined;
+  tone?: "good" | "mid" | "bad" | "neutral" | undefined;
+};
 
 const toneClass = {
   good: "text-live",
@@ -10,7 +15,12 @@ const toneClass = {
   neutral: "text-muted-foreground",
 };
 
-export function IndicatorGrid({ experience, freshness, signal, validation }: Record<"experience" | "freshness" | "signal" | "validation", Indicator>) {
+export function IndicatorGrid({
+  experience,
+  freshness,
+  signal,
+  validation,
+}: Record<"experience" | "freshness" | "signal" | "validation", Indicator>) {
   const items: [ReactNode, Indicator][] = [
     [<Award key="a" />, experience],
     [<Clock key="c" />, freshness],
@@ -25,8 +35,12 @@ export function IndicatorGrid({ experience, freshness, signal, validation }: Rec
             {icon}
             {it.label}
           </div>
-          <div className={`mt-1 text-sm font-semibold ${toneClass[it.tone ?? "neutral"]}`}>{it.value}</div>
-          {it.hint && <div className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{it.hint}</div>}
+          <div className={`mt-1 text-sm font-semibold ${toneClass[it.tone ?? "neutral"]}`}>
+            {it.value}
+          </div>
+          {it.hint && (
+            <div className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{it.hint}</div>
+          )}
         </div>
       ))}
     </div>

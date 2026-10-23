@@ -18,9 +18,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "BusMap Macapá — ônibus colaborativo em tempo real" },
-      { name: "description", content: "Veja rotas e posições colaborativas de ônibus em Macapá, compartilhadas voluntariamente por passageiros." },
+      {
+        name: "description",
+        content:
+          "Veja rotas e posições colaborativas de ônibus em Macapá, compartilhadas voluntariamente por passageiros.",
+      },
       { property: "og:title", content: "BusMap Macapá" },
-      { property: "og:description", content: "Rotas e posições colaborativas de ônibus em Macapá, em tempo real." },
+      {
+        property: "og:description",
+        content: "Rotas e posições colaborativas de ônibus em Macapá, em tempo real.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -31,8 +38,10 @@ export const Route = createFileRoute("/")({
 const MATCH_TEXT: Record<string, string> = {
   new_group: "Você iniciou um novo acompanhamento nesta linha.",
   joined_active: "Sua posição foi agrupada a um ônibus já acompanhado por outros colaboradores.",
-  joined_stale: "Sua posição é compatível com a última posição conhecida; você está atualizando esse ônibus.",
-  target_mismatch: "Sua posição não é compatível com a última posição conhecida. Iniciamos um acompanhamento independente.",
+  joined_stale:
+    "Sua posição é compatível com a última posição conhecida; você está atualizando esse ônibus.",
+  target_mismatch:
+    "Sua posição não é compatível com a última posição conhecida. Iniciamos um acompanhamento independente.",
 };
 
 function Index() {
@@ -43,7 +52,10 @@ function Index() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
-  const [shareCtx, setShareCtx] = useState<{ route: string | null; group: string | null }>({ route: null, group: null });
+  const [shareCtx, setShareCtx] = useState<{ route: string | null; group: string | null }>({
+    route: null,
+    group: null,
+  });
   const [userPos, setUserPos] = useState<LatLng | null>(null);
   const [focus, setFocus] = useState<{ pos: LatLng; zoom: number; key: number } | null>(null);
   const [locMsg, setLocMsg] = useState<string | null>(null);
@@ -56,9 +68,13 @@ function Index() {
     .filter((g) => routeById.has(g.route_id))
     .map((g) => ({ ...g, state: groupState(g, timeout, retention, now) }))
     .filter((g) => g.state !== "expirado");
-  const activeCount = visibleGroups.filter((g) => g.state === "ativo").reduce((s, g) => s + g.active_contributors, 0);
+  const activeCount = visibleGroups
+    .filter((g) => g.state === "ativo")
+    .reduce((s, g) => s + g.active_contributors, 0);
   const activeBuses = visibleGroups.filter((g) => g.state === "ativo").length;
-  const sharing = ["locating", "starting", "active", "reconnecting", "paused"].includes(share.status);
+  const sharing = ["locating", "starting", "active", "reconnecting", "paused"].includes(
+    share.status,
+  );
 
   const group = visibleGroups.find((g) => g.id === selectedGroup) ?? null;
   const routeDetail = routeById.get(selectedRoute ?? "") ?? null;
@@ -72,7 +88,12 @@ function Index() {
         setUserPos(pos);
         setFocus({ pos, zoom: 16, key: Date.now() });
       },
-      (e) => setLocMsg(e.code === 1 ? "Permissão de localização negada." : "Não foi possível obter sua localização."),
+      (e) =>
+        setLocMsg(
+          e.code === 1
+            ? "Permissão de localização negada."
+            : "Não foi possível obter sua localização.",
+        ),
       { enableHighAccuracy: true, timeout: 15000 },
     );
   };
@@ -96,7 +117,11 @@ function Index() {
         <Suspense fallback={<div className="absolute inset-0 bg-muted" />}>
           <BusMap
             routes={routes}
-            groups={visibleGroups.map((g) => ({ ...g, code: routeById.get(g.route_id)!.code, color: routeById.get(g.route_id)!.color }))}
+            groups={visibleGroups.map((g) => ({
+              ...g,
+              code: routeById.get(g.route_id)!.code,
+              color: routeById.get(g.route_id)!.color,
+            }))}
             selectedRouteId={routeFilter}
             userPos={userPos}
             focus={focus}
@@ -113,7 +138,10 @@ function Index() {
       </ClientOnly>
 
       {/* Top bar */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-[500] space-y-2 p-3" style={{ background: "var(--gradient-header)" }}>
+      <header
+        className="pointer-events-none absolute inset-x-0 top-0 z-[500] space-y-2 p-3"
+        style={{ background: "var(--gradient-header)" }}
+      >
         <div className="pointer-events-auto flex items-center gap-2">
           <div className="flex flex-1 items-center gap-2 rounded-2xl bg-card/95 px-3 py-2 shadow-[var(--shadow-pop)] backdrop-blur">
             <span className="grid size-8 place-items-center rounded-lg bg-accent text-accent-foreground">
@@ -121,18 +149,35 @@ function Index() {
             </span>
             <div className="leading-tight">
               <h1 className="text-base font-bold">BusMap Macapá</h1>
-              <p className="text-[11px] text-muted-foreground">Posições colaborativas · não oficial</p>
+              <p className="text-[11px] text-muted-foreground">
+                Posições colaborativas · não oficial
+              </p>
             </div>
-            <span className={`ml-auto flex items-center gap-1 text-[11px] ${live === "online" ? "text-live" : "text-muted-foreground"}`}>
-              <Radio className="size-3" /> {live === "online" ? "ao vivo" : live === "connecting" ? "conectando" : "offline"}
+            <span
+              className={`ml-auto flex items-center gap-1 text-[11px] ${live === "online" ? "text-live" : "text-muted-foreground"}`}
+            >
+              <Radio className="size-3" />{" "}
+              {live === "online" ? "ao vivo" : live === "connecting" ? "conectando" : "offline"}
             </span>
           </div>
-          <Button asChild size="icon" variant="outline" className="rounded-xl bg-card/95" aria-label={user ? "Meu perfil" : "Entrar"}>
+          <Button
+            asChild
+            size="icon"
+            variant="outline"
+            className="rounded-xl bg-card/95"
+            aria-label={user ? "Meu perfil" : "Entrar"}
+          >
             <Link to={user ? "/perfil" : "/auth"}>
               <User />
             </Link>
           </Button>
-          <Button asChild size="icon" variant="outline" className="rounded-xl bg-card/95" aria-label="Administração">
+          <Button
+            asChild
+            size="icon"
+            variant="outline"
+            className="rounded-xl bg-card/95"
+            aria-label="Administração"
+          >
             <Link to="/admin" className={isAdmin ? "text-primary" : ""}>
               <Settings />
             </Link>
@@ -144,7 +189,12 @@ function Index() {
               Todas
             </Chip>
             {routes.map((r) => (
-              <Chip key={r.id} active={routeFilter === r.id} color={r.color} onClick={() => setRouteFilter(routeFilter === r.id ? null : r.id)}>
+              <Chip
+                key={r.id}
+                active={routeFilter === r.id}
+                color={r.color}
+                onClick={() => setRouteFilter(routeFilter === r.id ? null : r.id)}
+              >
                 {r.code}
               </Chip>
             ))}
@@ -169,55 +219,85 @@ function Index() {
           ) : routeDetail ? (
             <div className="space-y-2">
               <div className="flex items-start gap-3">
-                <span className="grid h-10 min-w-10 place-items-center rounded-xl px-2 text-sm font-bold text-primary-foreground" style={{ background: routeDetail.color }}>
+                <span
+                  className="grid h-10 min-w-10 place-items-center rounded-xl px-2 text-sm font-bold text-primary-foreground"
+                  style={{ background: routeDetail.color }}
+                >
                   {routeDetail.code}
                 </span>
                 <div className="flex-1">
                   <h2 className="font-bold">{routeDetail.name}</h2>
                   <p className="text-xs text-muted-foreground">
-                    {routeDetail.origin_label || "Origem"} → {routeDetail.dest_label || "Destino"} · {formatDistance(routeDetail.distance_m)} · sentido{" "}
-                    {routeDetail.direction}
+                    {routeDetail.origin_label || "Origem"} → {routeDetail.dest_label || "Destino"} ·{" "}
+                    {formatDistance(routeDetail.distance_m)} · sentido {routeDetail.direction}
                   </p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => setSelectedRoute(null)} aria-label="Fechar">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setSelectedRoute(null)}
+                  aria-label="Fechar"
+                >
                   <X />
                 </Button>
               </div>
-              {routeDetail.description && <p className="text-sm text-muted-foreground">{routeDetail.description}</p>}
-              <Button variant="bus" className="w-full" onClick={() => openShare(routeDetail.id, null)}>
+              {routeDetail.description && (
+                <p className="text-sm text-muted-foreground">{routeDetail.description}</p>
+              )}
+              <Button
+                variant="bus"
+                className="w-full"
+                onClick={() => openShare(routeDetail.id, null)}
+              >
                 Estou nesta linha — compartilhar
               </Button>
             </div>
           ) : (
             <>
-              {share.status === "ended" && (
-                <EndSummary share={share} signedIn={!!user} />
-              )}
+              {share.status === "ended" && <EndSummary share={share} signedIn={!!user} />}
               <div className="grid grid-cols-3 gap-2 text-center">
                 <Stat n={routes.length} label="rotas" />
                 <Stat n={activeBuses} label="ônibus ativos" />
                 <Stat n={activeCount} label="compartilhando" />
               </div>
               {error ? (
-                <p className="text-sm text-destructive">Não foi possível carregar os dados: {friendlyError(error)}</p>
+                <p className="text-sm text-destructive">
+                  Não foi possível carregar os dados: {friendlyError(error)}
+                </p>
               ) : loading ? (
                 <p className="text-sm text-muted-foreground">Carregando rotas…</p>
               ) : routes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Ainda não há rotas publicadas. Volte em breve.</p>
+                <p className="text-sm text-muted-foreground">
+                  Ainda não há rotas publicadas. Volte em breve.
+                </p>
               ) : visibleGroups.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhum passageiro está compartilhando agora. Está em um ônibus? Seja o primeiro!</p>
+                <p className="text-sm text-muted-foreground">
+                  Nenhum passageiro está compartilhando agora. Está em um ônibus? Seja o primeiro!
+                </p>
               ) : null}
               {locMsg && <p className="text-xs text-destructive">{locMsg}</p>}
               <div className="flex gap-2">
-                <Button variant="outline" size="icon" className="size-11 rounded-xl" onClick={locate} aria-label="Centralizar na minha localização">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-11 rounded-xl"
+                  onClick={locate}
+                  aria-label="Centralizar na minha localização"
+                >
                   <LocateFixed />
                 </Button>
-                <Button variant="bus" className="h-11 flex-1 rounded-xl text-base" disabled={routes.length === 0} onClick={() => openShare(routeFilter, null)}>
+                <Button
+                  variant="bus"
+                  className="h-11 flex-1 rounded-xl text-base"
+                  disabled={routes.length === 0}
+                  onClick={() => openShare(routeFilter, null)}
+                >
                   <Crosshair /> Estou no ônibus
                 </Button>
               </div>
               <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Info className="size-3" /> Dados enviados voluntariamente por passageiros. Não é rastreamento oficial.{" "}
+                <Info className="size-3" /> Dados enviados voluntariamente por passageiros. Não é
+                rastreamento oficial.{" "}
                 <Link to="/privacidade" className="underline">
                   Privacidade
                 </Link>
@@ -243,13 +323,25 @@ function Index() {
         busy={share.status === "locating" || share.status === "starting"}
       />
       {shareOpen && share.status === "error" && share.message && (
-        <div className="fixed inset-x-3 top-3 z-[2000] mx-auto max-w-md rounded-xl bg-destructive p-3 text-sm text-destructive-foreground">{share.message}</div>
+        <div className="fixed inset-x-3 top-3 z-[2000] mx-auto max-w-md rounded-xl bg-destructive p-3 text-sm text-destructive-foreground">
+          {share.message}
+        </div>
       )}
     </div>
   );
 }
 
-function Chip({ children, active, color, onClick }: { children: React.ReactNode; active: boolean; color?: string; onClick: () => void }) {
+function Chip({
+  children,
+  active,
+  color,
+  onClick,
+}: {
+  children: React.ReactNode;
+  active: boolean;
+  color?: string;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
@@ -292,7 +384,10 @@ function GroupPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 min-w-10 place-items-center rounded-xl px-2 text-sm font-bold text-primary-foreground" style={{ background: route.color }}>
+        <span
+          className="grid h-10 min-w-10 place-items-center rounded-xl px-2 text-sm font-bold text-primary-foreground"
+          style={{ background: route.color }}
+        >
           {route.code}
         </span>
         <div className="flex-1">
@@ -321,13 +416,28 @@ function GroupPanel({
         signal={{
           label: "Sinal",
           value: live ? `${group.signal} · ±${Math.round(group.accuracy_m)} m` : "sem sinal",
-          tone: !live ? "bad" : group.signal === "bom" ? "good" : group.signal === "moderado" ? "mid" : "bad",
-          hint: live && group.divergence_m > 50 ? `Colaboradores divergem ${Math.round(group.divergence_m)} m — posição incerta.` : undefined,
+          tone: !live
+            ? "bad"
+            : group.signal === "bom"
+              ? "good"
+              : group.signal === "moderado"
+                ? "mid"
+                : "bad",
+          hint:
+            live && group.divergence_m > 50
+              ? `Colaboradores divergem ${Math.round(group.divergence_m)} m — posição incerta.`
+              : undefined,
         }}
         validation={{
           label: "Validação",
           value: live ? `confiança ${group.confidence}` : "aguardando dados",
-          tone: !live ? "neutral" : group.confidence === "alta" ? "good" : group.confidence === "media" ? "mid" : "bad",
+          tone: !live
+            ? "neutral"
+            : group.confidence === "alta"
+              ? "good"
+              : group.confidence === "media"
+                ? "mid"
+                : "bad",
           hint: "Área, precisão e velocidade verificadas no servidor.",
         }}
       />
@@ -337,7 +447,9 @@ function GroupPanel({
             Estou neste ônibus — quero contribuir
           </Button>
         ) : (
-          <p className="text-center text-xs text-muted-foreground">Este ônibus já tem o máximo de colaboradores.</p>
+          <p className="text-center text-xs text-muted-foreground">
+            Este ônibus já tem o máximo de colaboradores.
+          </p>
         )
       ) : (
         <Button variant="bus" className="w-full" onClick={onHelp}>
@@ -348,7 +460,13 @@ function GroupPanel({
   );
 }
 
-function SharePanel({ share, timeout }: { share: ReturnType<typeof useGpsShare>; timeout: number }) {
+function SharePanel({
+  share,
+  timeout,
+}: {
+  share: ReturnType<typeof useGpsShare>;
+  timeout: number;
+}) {
   const ack = share.lastAck ? Math.round((Date.now() - share.lastAck) / 1000) : null;
   const isActive = share.status === "active" && ack !== null && ack <= timeout;
   const label =
@@ -364,7 +482,9 @@ function SharePanel({ share, timeout }: { share: ReturnType<typeof useGpsShare>;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <span className={`relative grid size-10 place-items-center rounded-full ${isActive ? "bg-live text-live-foreground" : "bg-stale text-stale-foreground"}`}>
+        <span
+          className={`relative grid size-10 place-items-center rounded-full ${isActive ? "bg-live text-live-foreground" : "bg-stale text-stale-foreground"}`}
+        >
           <Radio className="size-5" />
         </span>
         <div className="flex-1">
@@ -376,25 +496,48 @@ function SharePanel({ share, timeout }: { share: ReturnType<typeof useGpsShare>;
           </p>
         </div>
       </div>
-      {share.start && <p className="rounded-xl bg-muted p-2 text-xs">{MATCH_TEXT[share.start.match]}</p>}
+      {share.start && (
+        <p className="rounded-xl bg-muted p-2 text-xs">{MATCH_TEXT[share.start.match]}</p>
+      )}
       {share.start?.off_route && (
-        <p className="rounded-xl border border-warn/50 p-2 text-xs">Você parece estar longe do trajeto desta linha. Confirme se escolheu a linha certa.</p>
+        <p className="rounded-xl border border-warn/50 p-2 text-xs">
+          Você parece estar longe do trajeto desta linha. Confirme se escolheu a linha certa.
+        </p>
       )}
       {share.lastReject && (
         <p className="text-xs text-warn">
-          Última leitura não aceita: {share.lastReject === "LOW_ACCURACY" ? "precisão insuficiente" : share.lastReject === "IMPOSSIBLE_SPEED" ? "salto de posição improvável" : share.lastReject === "OUT_OF_AREA" ? "fora da área" : share.lastReject}
+          Última leitura não aceita:{" "}
+          {share.lastReject === "LOW_ACCURACY"
+            ? "precisão insuficiente"
+            : share.lastReject === "IMPOSSIBLE_SPEED"
+              ? "salto de posição improvável"
+              : share.lastReject === "OUT_OF_AREA"
+                ? "fora da área"
+                : share.lastReject}
         </p>
       )}
-      {share.backgrounded && <p className="text-xs text-warn">Página em segundo plano: o navegador pode pausar o GPS.</p>}
+      {share.backgrounded && (
+        <p className="text-xs text-warn">Página em segundo plano: o navegador pode pausar o GPS.</p>
+      )}
       {share.message && <p className="text-xs text-destructive">{share.message}</p>}
-      <Button variant="destructive" className="h-11 w-full rounded-xl text-base" onClick={share.stop}>
+      <Button
+        variant="destructive"
+        className="h-11 w-full rounded-xl text-base"
+        onClick={share.stop}
+      >
         <Square /> Parar de compartilhar
       </Button>
     </div>
   );
 }
 
-function EndSummary({ share, signedIn }: { share: ReturnType<typeof useGpsShare>; signedIn: boolean }) {
+function EndSummary({
+  share,
+  signedIn,
+}: {
+  share: ReturnType<typeof useGpsShare>;
+  signedIn: boolean;
+}) {
   const r = share.endResult;
   return (
     <div className="flex items-start gap-2 rounded-xl bg-muted p-3 text-xs">
@@ -403,9 +546,19 @@ function EndSummary({ share, signedIn }: { share: ReturnType<typeof useGpsShare>
         {share.message && <p>{share.message}</p>}
         {r?.validation && (
           <p>
-            Validação: <b>{r.validation === "valid" ? "válida" : r.validation === "inconclusive" ? "pendente/inconclusiva (sem pontos, sem punição)" : r.validation === "invalid" ? "não validada" : r.validation}</b>
+            Validação:{" "}
+            <b>
+              {r.validation === "valid"
+                ? "válida"
+                : r.validation === "inconclusive"
+                  ? "pendente/inconclusiva (sem pontos, sem punição)"
+                  : r.validation === "invalid"
+                    ? "não validada"
+                    : r.validation}
+            </b>
             {r.notes ? ` — ${r.notes}` : ""}
-            {r.validation === "valid" && (signedIn ? ` · +${r.xp ?? 0} XP` : " · entre na conta para guardar sua experiência")}
+            {r.validation === "valid" &&
+              (signedIn ? ` · +${r.xp ?? 0} XP` : " · entre na conta para guardar sua experiência")}
           </p>
         )}
       </div>

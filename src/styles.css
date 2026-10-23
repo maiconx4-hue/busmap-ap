@@ -94,21 +94,29 @@
   --sidebar-ring: oklch(0.55 0.09 195);
   --shadow-pop: 0 6px 20px -8px color-mix(in oklab, var(--foreground) 45%, transparent);
   --shadow-sheet: 0 -10px 40px -12px color-mix(in oklab, var(--foreground) 35%, transparent);
-  --gradient-header: linear-gradient(180deg, color-mix(in oklab, var(--background) 96%, transparent), color-mix(in oklab, var(--background) 0%, transparent));
+  --gradient-header: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--background) 96%, transparent),
+    color-mix(in oklab, var(--background) 0%, transparent)
+  );
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
-  html, body {
+  html,
+  body {
     font-family: var(--font-sans);
   }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
-  h1, h2, h3, .font-display {
+  h1,
+  h2,
+  h3,
+  .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
@@ -126,7 +134,9 @@
   font: 700 11px var(--font-sans);
   color: var(--card);
 }
-.bus-marker.live { background: var(--route, var(--live)); }
+.bus-marker.live {
+  background: var(--route, var(--live));
+}
 .bus-marker.live::after {
   content: "";
   position: absolute;
@@ -141,22 +151,45 @@
   border-style: dashed;
 }
 .me-marker {
-  width: 16px; height: 16px; border-radius: 999px;
-  background: var(--primary); border: 3px solid var(--card);
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--primary);
+  border: 3px solid var(--card);
   box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 25%, transparent);
 }
 .edit-point {
-  width: 14px; height: 14px; border-radius: 999px;
-  background: var(--card); border: 3px solid var(--primary);
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 3px solid var(--primary);
 }
 .pin-marker {
-  width: 22px; height: 22px; border-radius: 999px 999px 999px 0; transform: rotate(-45deg);
-  border: 3px solid var(--card); box-shadow: var(--shadow-pop);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px 999px 999px 0;
+  transform: rotate(-45deg);
+  border: 3px solid var(--card);
+  box-shadow: var(--shadow-pop);
 }
-.pin-marker.origin { background: var(--live); }
-.pin-marker.dest { background: var(--destructive); }
+.pin-marker.origin {
+  background: var(--live);
+}
+.pin-marker.dest {
+  background: var(--destructive);
+}
 @keyframes bus-pulse {
-  from { transform: scale(0.8); opacity: 0.9; }
-  to { transform: scale(1.6); opacity: 0; }
+  from {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
 }
-.leaflet-container { font-family: var(--font-sans); background: var(--muted); }
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--muted);
+}
