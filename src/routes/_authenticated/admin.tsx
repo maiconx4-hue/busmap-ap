@@ -26,6 +26,27 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 type RouteRow = Tables<"routes">;
+type AdminStats = Partial<
+  Record<
+    | "routes_total"
+    | "routes_published"
+    | "routes_draft"
+    | "routes_inactive"
+    | "sessions_active"
+    | "groups_active"
+    | "groups_stale"
+    | "sessions_24h"
+    | "valid_24h"
+    | "inconclusive_24h"
+    | "invalid_24h"
+    | "updates_24h"
+    | "rejected_24h"
+    | "visitors"
+    | "users"
+    | "last_maintenance",
+    number | string | null
+  >
+>;
 const STATUS_PT = { draft: "Rascunho", published: "Publicada", inactive: "Desativada" } as const;
 
 function Admin() {
@@ -33,13 +54,16 @@ function Admin() {
     queryKey: ["is-admin"],
     queryFn: async () => (await supabase.rpc("is_admin")).data === true,
   });
-  if (adm.isLoading) return <main className="p-6 text-sm text-muted-foreground">Verificando acesso…</main>;
+  if (adm.isLoading)
+    return <main className="p-6 text-sm text-muted-foreground">Verificando acesso…</main>;
   if (!adm.data)
     return (
       <main className="mx-auto flex min-h-[100dvh] max-w-sm flex-col items-center justify-center gap-3 p-6 text-center">
         <Lock className="size-8 text-muted-foreground" />
         <h1 className="text-xl font-bold">Acesso restrito</h1>
-        <p className="text-sm text-muted-foreground">Esta área é exclusiva do administrador do BusMap Macapá.</p>
+        <p className="text-sm text-muted-foreground">
+          Esta área é exclusiva do administrador do BusMap Macapá.
+        </p>
         <Button asChild variant="outline">
           <Link to="/">Voltar ao mapa</Link>
         </Button>
@@ -56,7 +80,7 @@ function AdminPanel() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("admin_stats");
       if (error) throw error;
-      return data as Record<string, number | string | null>;
+      return data as unknown as AdminStats;
     },
     refetchInterval: 15000,
   });
@@ -78,7 +102,10 @@ function AdminPanel() {
   });
   const [osrm, setOsrm] = useState<"?" | "ok" | "falha">("?");
   useEffect(() => {
-    fetch("https://router.project-osrm.org/route/v1/driving/-51.07,0.03;-51.06,0.04?overview=false", { signal: AbortSignal.timeout(8000) })
+    fetch(
+      "https://router.project-osrm.org/route/v1/driving/-51.07,0.03;-51.06,0.04?overview=false",
+      { signal: AbortSignal.timeout(8000) },
+    )
       .then((r) => setOsrm(r.ok ? "ok" : "falha"))
       .catch(() => setOsrm("falha"));
   }, []);
@@ -90,17 +117,24 @@ function AdminPanel() {
   };
   const setStatus = async (r: RouteRow, status: RouteRow["status"]) => {
     const { error } = await supabase.from("routes").update({ status }).eq("id", r.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     refresh();
   };
   const remove = async (r: RouteRow) => {
-    if (!confirm(`Excluir a rota ${r.code}? Posições ligadas a ela também serão removidas.`)) return;
+    if (!confirm(`Excluir a rota ${r.code}? Posições ligadas a ela também serão removidas.`))
+      return;
     const { error } = await supabase.from("routes").delete().eq("id", r.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     refresh();
   };
 
-  const s = stats.data ?? {};
+  const s: AdminStats = stats.data ?? {};
   const lastMaint = s.last_maintenance ? new Date(String(s.last_maintenance)) : null;
   const maintOk = lastMaint && Date.now() - lastMaint.getTime() < 15 * 60_000;
 
@@ -173,17 +207,23 @@ function AdminPanel() {
               <Button onClick={() => setEditing("new")}>
                 <Plus /> Nova rota
               </Button>
-              {routes.data?.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma rota cadastrada.</p>}
+              {routes.data?.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhuma rota cadastrada.</p>
+              )}
               <div className="divide-y rounded-xl border bg-card">
                 {routes.data?.map((r) => (
                   <div key={r.id} className="flex flex-wrap items-center gap-3 p-3">
-                    <span className="grid h-9 min-w-9 place-items-center rounded-lg px-1.5 text-xs font-bold text-primary-foreground" style={{ background: r.color }}>
+                    <span
+                      className="grid h-9 min-w-9 place-items-center rounded-lg px-1.5 text-xs font-bold text-primary-foreground"
+                      style={{ background: r.color }}
+                    >
                       {r.code}
                     </span>
                     <div className="min-w-40 flex-1">
                       <div className="text-sm font-semibold">{r.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {STATUS_PT[r.status]} · {formatDistance(r.distance_m)} · {r.creation_method === "osrm" ? "OSRM" : "manual"} · atualizada{" "}
+                        {STATUS_PT[r.status]} · {formatDistance(r.distance_m)} ·{" "}
+                        {r.creation_method === "osrm" ? "OSRM" : "manual"} · atualizada{" "}
                         {new Date(r.updated_at).toLocaleDateString("pt-BR")}
                       </div>
                     </div>
@@ -196,7 +236,11 @@ function AdminPanel() {
                           Publicar
                         </Button>
                       ) : (
-                        <Button size="sm" variant="outline" onClick={() => setStatus(r, "inactive")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setStatus(r, "inactive")}
+                        >
                           Desativar
                         </Button>
                       )}
@@ -214,7 +258,11 @@ function AdminPanel() {
         <TabsContent value="config">
           <div className="divide-y rounded-xl border bg-card">
             {settings.data?.map((row) => (
-              <SettingRow key={row.key} row={row} onSaved={() => qc.invalidateQueries({ queryKey: ["admin-settings"] })} />
+              <SettingRow
+                key={row.key}
+                row={row}
+                onSaved={() => qc.invalidateQueries({ queryKey: ["admin-settings"] })}
+              />
             ))}
           </div>
         </TabsContent>
@@ -227,9 +275,18 @@ function SettingRow({ row, onSaved }: { row: Tables<"settings">; onSaved: () => 
   const [v, setV] = useState(String(row.value));
   const save = async () => {
     const n = Number(v);
-    if (!Number.isFinite(n) || n < 0) return toast.error("Valor inválido.");
-    const { error } = await supabase.from("settings").update({ value: n, updated_at: new Date().toISOString() }).eq("key", row.key);
-    if (error) return toast.error(error.message);
+    if (!Number.isFinite(n) || n < 0) {
+      toast.error("Valor inválido.");
+      return;
+    }
+    const { error } = await supabase
+      .from("settings")
+      .update({ value: n, updated_at: new Date().toISOString() })
+      .eq("key", row.key);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Configuração salva.");
     onSaved();
   };
@@ -239,7 +296,12 @@ function SettingRow({ row, onSaved }: { row: Tables<"settings">; onSaved: () => 
         <div className="font-mono text-xs">{row.key}</div>
         <div className="text-muted-foreground">{row.description}</div>
       </div>
-      <Input className="w-28" value={v} onChange={(e) => setV(e.target.value)} inputMode="decimal" />
+      <Input
+        className="w-28"
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        inputMode="decimal"
+      />
       <Button size="sm" variant="outline" onClick={save} disabled={String(row.value) === v}>
         Salvar
       </Button>

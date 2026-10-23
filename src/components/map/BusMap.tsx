@@ -5,7 +5,16 @@ import { MACAPA_CENTER, isLatLngArray, type LatLng } from "@/lib/geo";
 import type { GroupState } from "@/lib/freshness";
 
 export type MapRoute = { id: string; code: string; color: string; geometry: unknown };
-export type MapGroup = { id: string; route_id: string; lat: number; lng: number; accuracy_m: number; state: GroupState; code: string; color: string };
+export type MapGroup = {
+  id: string;
+  route_id: string;
+  lat: number;
+  lng: number;
+  accuracy_m: number;
+  state: GroupState;
+  code: string;
+  color: string;
+};
 
 type Props = {
   routes: MapRoute[];
@@ -17,7 +26,15 @@ type Props = {
   onSelectRoute: (id: string) => void;
 };
 
-export default function BusMap({ routes, groups, selectedRouteId, userPos, focus, onSelectGroup, onSelectRoute }: Props) {
+export default function BusMap({
+  routes,
+  groups,
+  selectedRouteId,
+  userPos,
+  focus,
+  onSelectGroup,
+  onSelectRoute,
+}: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const routeLayer = useRef<L.LayerGroup | null>(null);
@@ -28,7 +45,10 @@ export default function BusMap({ routes, groups, selectedRouteId, userPos, focus
 
   useEffect(() => {
     if (!el.current || map.current) return;
-    const m = L.map(el.current, { zoomControl: false, attributionControl: true }).setView(MACAPA_CENTER, 13);
+    const m = L.map(el.current, { zoomControl: false, attributionControl: true }).setView(
+      MACAPA_CENTER,
+      13,
+    );
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -66,7 +86,12 @@ export default function BusMap({ routes, groups, selectedRouteId, userPos, focus
       if (selectedRouteId && g.route_id !== selectedRouteId) return;
       const live = g.state === "ativo";
       if (live && g.accuracy_m > 0)
-        L.circle([g.lat, g.lng], { radius: g.accuracy_m, color: g.color, weight: 1, fillOpacity: 0.08 }).addTo(layer);
+        L.circle([g.lat, g.lng], {
+          radius: g.accuracy_m,
+          color: g.color,
+          weight: 1,
+          fillOpacity: 0.08,
+        }).addTo(layer);
       L.marker([g.lat, g.lng], {
         icon: L.divIcon({
           className: "",
@@ -86,7 +111,13 @@ export default function BusMap({ routes, groups, selectedRouteId, userPos, focus
     if (!layer) return;
     layer.clearLayers();
     if (userPos)
-      L.marker(userPos, { icon: L.divIcon({ className: "", html: '<div class="me-marker"></div>', iconSize: [16, 16] }) }).addTo(layer);
+      L.marker(userPos, {
+        icon: L.divIcon({
+          className: "",
+          html: '<div class="me-marker"></div>',
+          iconSize: [16, 16],
+        }),
+      }).addTo(layer);
   }, [userPos]);
 
   useEffect(() => {

@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureVisitor, type VisitorCreds } from "@/lib/visitor";
 import { errorCode, friendlyError } from "@/lib/errors";
 
-export type ShareStatus = "idle" | "locating" | "starting" | "active" | "reconnecting" | "paused" | "ended" | "error";
+export type ShareStatus =
+  "idle" | "locating" | "starting" | "active" | "reconnecting" | "paused" | "ended" | "error";
 export type StartResult = {
   session_id: string;
   group_id: string;
@@ -13,25 +14,38 @@ export type StartResult = {
   timeout_s: number;
   contributors: number;
 };
-export type EndResult = { ended: boolean; validation?: string; notes?: string; xp?: number; credited?: boolean };
+export type EndResult = {
+  ended: boolean;
+  validation?: string;
+  notes?: string;
+  xp?: number;
+  credited?: boolean;
+};
 
 const SESSION_KEY = "busmap.session.v1";
 
 function getPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) return reject(new Error("GPS_UNAVAILABLE"));
-    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 });
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 5000,
+    });
   });
 }
 
 export function geoErrorMessage(e: unknown) {
   if (e && typeof e === "object" && "code" in e) {
     const c = (e as GeolocationPositionError).code;
-    if (c === 1) return "Permissão de localização negada. Libere o acesso ao GPS nas configurações do navegador.";
-    if (c === 2) return "GPS indisponível no momento. Verifique se a localização do aparelho está ligada.";
+    if (c === 1)
+      return "Permissão de localização negada. Libere o acesso ao GPS nas configurações do navegador.";
+    if (c === 2)
+      return "GPS indisponível no momento. Verifique se a localização do aparelho está ligada.";
     if (c === 3) return "O GPS demorou demais para responder. Tente em um local aberto.";
   }
-  if (e instanceof Error && e.message === "GPS_UNAVAILABLE") return "Este navegador não oferece GPS.";
+  if (e instanceof Error && e.message === "GPS_UNAVAILABLE")
+    return "Este navegador não oferece GPS.";
   return friendlyError(e);
 }
 
@@ -68,8 +82,11 @@ export function useGpsShare() {
 
   const requestWakeLock = useCallback(async () => {
     try {
-      const nav = navigator as Navigator & { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } };
-      if (nav.wakeLock && document.visibilityState === "visible") wakeLock.current = await nav.wakeLock.request("screen");
+      const nav = navigator as Navigator & {
+        wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> };
+      };
+      if (nav.wakeLock && document.visibilityState === "visible")
+        wakeLock.current = await nav.wakeLock.request("screen");
     } catch {
       /* not supported or denied */
     }
@@ -95,10 +112,19 @@ export function useGpsShare() {
         p_accuracy: pos.coords.accuracy,
       });
       if (error) throw error;
-      const r = data as { accepted: boolean; reason: string | null; ended?: boolean; contributors?: number };
+      const r = data as {
+        accepted: boolean;
+        reason: string | null;
+        ended?: boolean;
+        contributors?: number;
+      };
       if (r.ended) {
         setStatus("ended");
-        setMessage("A sessão expirou porque as atualizações pararam por mais de " + s.timeout_s + " segundos.");
+        setMessage(
+          "A sessão expirou porque as atualizações pararam por mais de " +
+            s.timeout_s +
+            " segundos.",
+        );
         cleanup();
         return;
       }
@@ -143,7 +169,7 @@ export function useGpsShare() {
           p_lat: pos.coords.latitude,
           p_lng: pos.coords.longitude,
           p_accuracy: pos.coords.accuracy,
-          p_target_group: targetGroup ?? undefined,
+          ...(targetGroup ? { p_target_group: targetGroup } : {}),
         });
         if (error) throw error;
         const r = data as unknown as StartResult;
@@ -182,10 +208,16 @@ export function useGpsShare() {
     setStatus("ended");
     if (!s || !c) return;
     try {
-      const { data } = await supabase.rpc("end_session", { p_session: s.session_id, p_visitor: c.visitor_id, p_secret: c.secret });
+      const { data } = await supabase.rpc("end_session", {
+        p_session: s.session_id,
+        p_visitor: c.visitor_id,
+        p_secret: c.secret,
+      });
       setEndResult(data as EndResult);
     } catch {
-      setMessage("Coleta interrompida no aparelho. O servidor encerrará a sessão automaticamente em até 60 segundos.");
+      setMessage(
+        "Coleta interrompida no aparelho. O servidor encerrará a sessão automaticamente em até 60 segundos.",
+      );
     }
   }, [cleanup]);
 
@@ -200,7 +232,9 @@ export function useGpsShare() {
       }
     };
     const onOnline = () => session.current && send();
-    const onOffline = () => session.current && (setStatus("reconnecting"), setMessage("Sem internet. Reenviaremos ao reconectar."));
+    const onOffline = () =>
+      session.current &&
+      (setStatus("reconnecting"), setMessage("Sem internet. Reenviaremos ao reconectar."));
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
@@ -216,7 +250,13 @@ export function useGpsShare() {
     const leftover = sessionStorage.getItem(SESSION_KEY);
     if (leftover) {
       ensureVisitor()
-        .then((c) => supabase.rpc("end_session", { p_session: leftover, p_visitor: c.visitor_id, p_secret: c.secret }))
+        .then((c) =>
+          supabase.rpc("end_session", {
+            p_session: leftover,
+            p_visitor: c.visitor_id,
+            p_secret: c.secret,
+          }),
+        )
         .finally(() => sessionStorage.removeItem(SESSION_KEY));
     }
     return () => {
@@ -232,5 +272,18 @@ export function useGpsShare() {
     setEndResult(null);
   }, []);
 
-  return { status, message, start, lastAck, lastReject, accuracy, contributors, endResult, backgrounded, begin, stop, reset };
+  return {
+    status,
+    message,
+    start,
+    lastAck,
+    lastReject,
+    accuracy,
+    contributors,
+    endResult,
+    backgrounded,
+    begin,
+    stop,
+    reset,
+  };
 }

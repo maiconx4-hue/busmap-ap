@@ -15,13 +15,23 @@ const MESSAGES: Record<string, string> = {
 };
 
 export function friendlyError(e: unknown): string {
-  const msg = e instanceof Error ? e.message : typeof e === "object" && e && "message" in e ? String((e as { message: unknown }).message) : String(e);
-  for (const code of Object.keys(MESSAGES)) if (msg.includes(code)) return MESSAGES[code];
+  const msg =
+    e instanceof Error
+      ? e.message
+      : typeof e === "object" && e && "message" in e
+        ? String((e as { message: unknown }).message)
+        : String(e);
+  for (const code of Object.keys(MESSAGES)) if (msg.includes(code)) return MESSAGES[code]!;
   if (/fetch|network|Failed to fetch/i.test(msg)) return "Sem conexão com a internet.";
   return msg || "Erro inesperado.";
 }
 
 export function errorCode(e: unknown): string | null {
-  const msg = e instanceof Error ? e.message : typeof e === "object" && e && "message" in e ? String((e as { message: unknown }).message) : String(e);
+  const msg =
+    e instanceof Error
+      ? e.message
+      : typeof e === "object" && e && "message" in e
+        ? String((e as { message: unknown }).message)
+        : String(e);
   return Object.keys(MESSAGES).find((c) => msg.includes(c)) ?? null;
 }

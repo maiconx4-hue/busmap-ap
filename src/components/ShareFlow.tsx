@@ -1,10 +1,16 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MapPin, ShieldAlert, Users } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { BusGroup, PublicRoute } from "@/hooks/useMapData";
+import type { BusGroup, PublicRoute, Settings } from "@/hooks/useMapData";
 import { formatAge, groupState } from "@/lib/freshness";
 
 type Props = {
@@ -12,14 +18,24 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   routes: PublicRoute[];
   groups: BusGroup[];
-  settings: Record<string, number>;
+  settings: Settings;
   initialRouteId: string | null;
   targetGroupId: string | null;
   onConfirm: (routeId: string, targetGroupId: string | null) => void;
   busy: boolean;
 };
 
-export function ShareFlow({ open, onOpenChange, routes, groups, settings, initialRouteId, targetGroupId, onConfirm, busy }: Props) {
+export function ShareFlow({
+  open,
+  onOpenChange,
+  routes,
+  groups,
+  settings,
+  initialRouteId,
+  targetGroupId,
+  onConfirm,
+  busy,
+}: Props) {
   const [routeId, setRouteId] = useState<string | null>(initialRouteId);
   const [step, setStep] = useState<"route" | "consent">(initialRouteId ? "consent" : "route");
   const [agree, setAgree] = useState(false);
@@ -33,7 +49,7 @@ export function ShareFlow({ open, onOpenChange, routes, groups, settings, initia
     const rg = groups.filter((g) => g.route_id === routeId);
     const active = rg.filter((g) => groupState(g, timeout, retention) === "ativo");
     const stale = rg.filter((g) => groupState(g, timeout, retention) === "desatualizado");
-    const target = targetGroupId ? rg.find((g) => g.id === targetGroupId) ?? null : null;
+    const target = targetGroupId ? (rg.find((g) => g.id === targetGroupId) ?? null) : null;
     return { active, stale, target };
   }, [routeId, groups, targetGroupId, timeout, retention]);
 
@@ -52,14 +68,18 @@ export function ShareFlow({ open, onOpenChange, routes, groups, settings, initia
           <>
             <DialogHeader>
               <DialogTitle>Em qual linha você está?</DialogTitle>
-              <DialogDescription>Escolha a linha do ônibus em que você está viajando agora.</DialogDescription>
+              <DialogDescription>
+                Escolha a linha do ônibus em que você está viajando agora.
+              </DialogDescription>
             </DialogHeader>
             {routes.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma linha publicada ainda.</p>
             ) : (
               <div className="grid gap-2">
                 {routes.map((r) => {
-                  const n = groups.filter((g) => g.route_id === r.id && groupState(g, timeout, retention) === "ativo").length;
+                  const n = groups.filter(
+                    (g) => g.route_id === r.id && groupState(g, timeout, retention) === "ativo",
+                  ).length;
                   return (
                     <button
                       key={r.id}
@@ -69,13 +89,18 @@ export function ShareFlow({ open, onOpenChange, routes, groups, settings, initia
                       }}
                       className="flex items-center gap-3 rounded-xl border bg-card p-3 text-left transition hover:border-primary"
                     >
-                      <span className="grid h-9 min-w-9 place-items-center rounded-lg px-1.5 text-xs font-bold text-primary-foreground" style={{ background: r.color }}>
+                      <span
+                        className="grid h-9 min-w-9 place-items-center rounded-lg px-1.5 text-xs font-bold text-primary-foreground"
+                        style={{ background: r.color }}
+                      >
                         {r.code}
                       </span>
                       <span className="flex-1">
                         <span className="block text-sm font-semibold">{r.name}</span>
                         <span className="block text-xs text-muted-foreground">
-                          {n > 0 ? `${n} ônibus com colaboradores agora` : "Sem colaboradores agora"}
+                          {n > 0
+                            ? `${n} ônibus com colaboradores agora`
+                            : "Sem colaboradores agora"}
                         </span>
                       </span>
                     </button>
@@ -88,7 +113,8 @@ export function ShareFlow({ open, onOpenChange, routes, groups, settings, initia
           <>
             <DialogHeader>
               <DialogTitle>
-                {context?.target && groupState(context.target, timeout, retention) === "desatualizado"
+                {context?.target &&
+                groupState(context.target, timeout, retention) === "desatualizado"
                   ? "Ajude a atualizar esta posição"
                   : context && context.active.length > 0
                     ? "Quer reforçar o acompanhamento?"
@@ -99,21 +125,25 @@ export function ShareFlow({ open, onOpenChange, routes, groups, settings, initia
               </DialogDescription>
             </DialogHeader>
 
-            {context?.target && groupState(context.target, timeout, retention) === "desatualizado" ? (
+            {context?.target &&
+            groupState(context.target, timeout, retention) === "desatualizado" ? (
               <div className="flex gap-2 rounded-xl bg-muted p-3 text-sm">
                 <Users className="mt-0.5 size-4 shrink-0" />
                 <p>
-                  A última posição conhecida deste ônibus é de {formatAge(context.target.last_update)} e ninguém está atualizando. Vamos comparar sua
-                  posição com ela e com o trajeto da linha. Só associaremos você a esse ônibus se houver evidência geográfica suficiente; caso contrário,
-                  iniciaremos um acompanhamento independente.
+                  A última posição conhecida deste ônibus é de{" "}
+                  {formatAge(context.target.last_update)} e ninguém está atualizando. Vamos comparar
+                  sua posição com ela e com o trajeto da linha. Só associaremos você a esse ônibus
+                  se houver evidência geográfica suficiente; caso contrário, iniciaremos um
+                  acompanhamento independente.
                 </p>
               </div>
             ) : context && context.active.length > 0 ? (
               <div className="flex gap-2 rounded-xl bg-muted p-3 text-sm">
                 <Users className="mt-0.5 size-4 shrink-0" />
                 <p>
-                  Já há colaboradores compartilhando nesta linha. Sua contribuição melhora a precisão. Se estiver perto de um ônibus já acompanhado,
-                  você será agrupado a ele (até {max} pessoas por ônibus).
+                  Já há colaboradores compartilhando nesta linha. Sua contribuição melhora a
+                  precisão. Se estiver perto de um ônibus já acompanhado, você será agrupado a ele
+                  (até {max} pessoas por ônibus).
                 </p>
               </div>
             ) : null}
@@ -121,23 +151,36 @@ export function ShareFlow({ open, onOpenChange, routes, groups, settings, initia
             <div className="space-y-2 text-sm">
               <p className="font-semibold">Como seus dados são usados</p>
               <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
-                <li>Sua localização é enviada a cada ~{settings.update_interval_s ?? 10}s apenas enquanto você compartilhar.</li>
-                <li>No mapa aparece só a posição média do ônibus, sem seu nome ou identificador.</li>
-                <li>Coordenadas brutas são apagadas após {settings.gps_retention_h ?? 24}h. Não publicamos seu histórico.</li>
+                <li>
+                  Sua localização é enviada a cada ~{settings.update_interval_s ?? 10}s apenas
+                  enquanto você compartilhar.
+                </li>
+                <li>
+                  No mapa aparece só a posição média do ônibus, sem seu nome ou identificador.
+                </li>
+                <li>
+                  Coordenadas brutas são apagadas após {settings.gps_retention_h ?? 24}h. Não
+                  publicamos seu histórico.
+                </li>
                 <li>Você pode parar a qualquer momento com um toque.</li>
                 <li>
-                  Proximidade não comprova que você está dentro do ônibus. Use somente se estiver de fato a bordo.
+                  Proximidade não comprova que você está dentro do ônibus. Use somente se estiver de
+                  fato a bordo.
                 </li>
               </ul>
               <div className="flex gap-2 rounded-xl border border-warn/40 p-3 text-xs">
                 <ShieldAlert className="size-4 shrink-0 text-warn" />
                 <span>
-                  Navegadores costumam pausar o GPS com a tela bloqueada ou o app em segundo plano. Mantenha esta página aberta e a tela ligada para
-                  continuar contribuindo.
+                  Navegadores costumam pausar o GPS com a tela bloqueada ou o app em segundo plano.
+                  Mantenha esta página aberta e a tela ligada para continuar contribuindo.
                 </span>
               </div>
               <label className="flex items-start gap-2 pt-1">
-                <Checkbox checked={agree} onCheckedChange={(v) => setAgree(v === true)} className="mt-0.5" />
+                <Checkbox
+                  checked={agree}
+                  onCheckedChange={(v) => setAgree(v === true)}
+                  className="mt-0.5"
+                />
                 <span>
                   Concordo em compartilhar minha localização para esta finalidade. Li a{" "}
                   <Link to="/privacidade" className="text-primary underline">
@@ -153,7 +196,12 @@ export function ShareFlow({ open, onOpenChange, routes, groups, settings, initia
                   Trocar linha
                 </Button>
               )}
-              <Button variant="live" className="flex-1" disabled={!agree || !routeId || busy} onClick={() => routeId && onConfirm(routeId, targetGroupId)}>
+              <Button
+                variant="live"
+                className="flex-1"
+                disabled={!agree || !routeId || busy}
+                onClick={() => routeId && onConfirm(routeId, targetGroupId)}
+              >
                 <MapPin /> {busy ? "Obtendo GPS…" : "Permitir GPS e compartilhar"}
               </Button>
             </div>
