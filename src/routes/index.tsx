@@ -6,7 +6,7 @@ import { useMapData, type BusGroup } from "@/hooks/useMapData";
 import { useGpsShare } from "@/hooks/useGpsShare";
 import { useAuth } from "@/hooks/useAuth";
 import { formatAge, groupState } from "@/lib/freshness";
-import { formatDistance, type LatLng } from "@/lib/geo";
+import { formatDistance, haversine, isLatLngArray, snapToPath, type LatLng } from "@/lib/geo";
 import { levelLabel } from "@/lib/levels";
 import { ShareFlow } from "@/components/ShareFlow";
 import { IndicatorGrid } from "@/components/IndicatorGrid";
@@ -117,11 +117,21 @@ function Index() {
         <Suspense fallback={<div className="absolute inset-0 bg-muted" />}>
           <BusMap
             routes={routes}
-            groups={visibleGroups.map((g) => ({
-              ...g,
-              code: routeById.get(g.route_id)!.code,
-              color: routeById.get(g.route_id)!.color,
-            }))}
+            groups={visibleGroups.map((g) => {
+              const r = routeById.get(g.route_id)!;
+              let lat = g.lat;
+              let lng = g.lng;
+              // Display-only: snap the marker onto the route line when close enough,
+              // so GPS drift doesn't show the bus off the road.
+              if (isLatLngArray(r.geometry) && r.geometry.length >= 2) {
+                const s = snapToPath([g.lat, g.lng], r.geometry);
+                if (haversine([g.lat, g.lng], s) <= 250) {
+                  lat = s[0];
+                  lng = s[1];
+                }
+              }
+              return { ...g, lat, lng, code: r.code, color: r.color };
+            })}
             selectedRouteId={routeFilter}
             userPos={userPos}
             focus={focus}
@@ -276,6 +286,13 @@ function Index() {
                 </p>
               ) : null}
               {locMsg && <p className="text-xs text-destructive">{locMsg}</p>}
+              {/* Espaço reservado para publicidade (Google AdSense) no futuro */}
+              <div
+                className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
+                aria-label="Espaço reservado para publicidade"
+              >
+                Publicidade
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
