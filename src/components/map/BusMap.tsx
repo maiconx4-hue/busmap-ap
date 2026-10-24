@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Crosshair } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MACAPA_CENTER, isLatLngArray, type LatLng } from "@/lib/geo";
@@ -25,6 +26,7 @@ type Props = {
   selectedRouteId: string | null;
   userPos: LatLng | null;
   focus: { pos: LatLng; zoom: number; key: number } | null;
+  followId?: string | null;
   onSelectGroup: (id: string) => void;
   onSelectRoute: (id: string) => void;
 };
@@ -35,6 +37,7 @@ export default function BusMap({
   selectedRouteId,
   userPos,
   focus,
+  followId = null,
   onSelectGroup,
   onSelectRoute,
 }: Props) {
@@ -127,5 +130,46 @@ export default function BusMap({
     if (focus && map.current) map.current.flyTo(focus.pos, focus.zoom, { duration: 0.8 });
   }, [focus]);
 
-  return <div ref={el} className="absolute inset-0 z-0" aria-label="Mapa de Macapá" />;
+  // Follow mode: keep the followed bus centered; a user drag pauses it.
+  const [paused, setPaused] = useState(false);
+  const followed = followId ? groups.find((g) => g.id === followId) ?? null : null;
+  useEffect(() => setPaused(false), [followId]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const onDrag = () => setPaused(true);
+    m.on("dragstart", onDrag);
+    return () => {
+      m.off("dragstart", onDrag);
+    };
+  }, []);
+  const lat = followed?.lat;
+  const lng = followed?.lng;
+  useEffect(() => {
+    const m = map.current;
+    if (!m || paused || lat == null || lng == null) return;
+    const zoom = Math.max(m.getZoom(), 16);
+    if (zoom !== m.getZoom()) m.setView([lat, lng], zoom, { animate: true });
+    else m.panTo([lat, lng], { animate: true, duration: 0.8 });
+  }, [lat, lng, paused]);
+
+  return (
+    <>
+      <div ref={el} className="absolute inset-0 z-0" aria-label="Mapa de Macapá" />
+      {followed && paused && (
+        <button
+          type="button"
+          onClick={() => setPaused(false)}
+          className="absolute left-1/2 top-28 z-[500] flex -translate-x-1/2 items-center gap-2 rounded-full border border-primary bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg"
+        >
+          <Crosshair className="size-4" /> Seguir ônibus {followed.code}
+        </button>
+      )}
+      {followed && !paused && (
+        <div className="pointer-events-none absolute left-1/2 top-28 z-[500] -translate-x-1/2 rounded-full bg-card/95 px-3 py-1 text-xs font-semibold text-foreground shadow">
+          Seguindo ônibus {followed.code}
+        </div>
+      )}
+    </>
+  );
 }

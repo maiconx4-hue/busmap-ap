@@ -135,6 +135,7 @@ function Index() {
             selectedRouteId={routeFilter}
             userPos={userPos}
             focus={focus}
+            followId={selectedGroup ?? (sharing ? (share.start?.group_id ?? null) : null)}
             onSelectGroup={(id) => {
               setSelectedGroup(id);
               setSelectedRoute(null);
