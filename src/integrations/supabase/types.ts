@@ -185,6 +185,7 @@ export type Database = {
           last_lng: number | null
           last_update_at: string
           max_gap_s: number
+          off_route_count: number
           rejected_count: number
           route_id: string
           speed_reject_count: number
@@ -212,6 +213,7 @@ export type Database = {
           last_lng?: number | null
           last_update_at?: string
           max_gap_s?: number
+          off_route_count?: number
           rejected_count?: number
           route_id: string
           speed_reject_count?: number
@@ -239,6 +241,7 @@ export type Database = {
           last_lng?: number | null
           last_update_at?: string
           max_gap_s?: number
+          off_route_count?: number
           rejected_count?: number
           route_id?: string
           speed_reject_count?: number
@@ -530,6 +533,10 @@ export type Database = {
       }
       recompute_group: { Args: { p_group: string }; Returns: undefined }
       register_visitor: { Args: never; Returns: Json }
+      route_distance_m: {
+        Args: { p_lat: number; p_lng: number; p_route: string }
+        Returns: number
+      }
       run_maintenance: { Args: never; Returns: undefined }
       start_session: {
         Args: {
