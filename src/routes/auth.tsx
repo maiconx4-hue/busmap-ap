@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Bus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,10 +39,16 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { next } = Route.useSearch();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const go = () => navigate({ to: next ?? "/perfil" });
+
+  // Already signed in (or just returned from Google): leave the auth page.
+  useEffect(() => {
+    if (!loading && user) navigate({ to: next ?? "/perfil", replace: true });
+  }, [user, loading, next, navigate]);
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();

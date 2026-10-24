@@ -4,6 +4,9 @@ import "leaflet/dist/leaflet.css";
 import { MACAPA_CENTER, isLatLngArray, type LatLng } from "@/lib/geo";
 import type { GroupState } from "@/lib/freshness";
 
+const BUS_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>';
+
 export type MapRoute = { id: string; code: string; color: string; geometry: unknown };
 export type MapGroup = {
   id: string;
@@ -95,9 +98,9 @@ export default function BusMap({
       L.marker([g.lat, g.lng], {
         icon: L.divIcon({
           className: "",
-          html: `<div class="bus-marker ${live ? "live" : "stale"}" style="--route:${g.color}">${g.code.slice(0, 4)}</div>`,
-          iconSize: [34, 34],
-          iconAnchor: [17, 17],
+          html: `<div class="bus-marker ${live ? "live" : "stale"}" style="--route:${g.color}">${BUS_SVG}<span class="bus-code">${g.code.slice(0, 4)}</span></div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
         }),
         title: live ? "Posição colaborativa ativa" : "Última posição conhecida (desatualizada)",
       })
