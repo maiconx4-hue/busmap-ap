@@ -121,9 +121,11 @@ export function useGpsShare() {
       if (r.ended) {
         setStatus("ended");
         setMessage(
-          "A sessão expirou porque as atualizações pararam por mais de " +
-            s.timeout_s +
-            " segundos.",
+          r.reason === "OFF_ROUTE"
+            ? "Você se afastou do trajeto da linha, então o compartilhamento foi encerrado automaticamente. Obrigado por contribuir!"
+            : "A sessão expirou porque as atualizações pararam por mais de " +
+                s.timeout_s +
+                " segundos.",
         );
         cleanup();
         return;

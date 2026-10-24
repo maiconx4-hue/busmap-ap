@@ -124,15 +124,33 @@
 
 /* Map markers (Leaflet divIcons) */
 .bus-marker {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   border: 3px solid var(--card);
   box-shadow: var(--shadow-pop);
-  font: 700 11px var(--font-sans);
   color: var(--card);
+}
+.bus-marker svg {
+  width: 19px;
+  height: 19px;
+}
+.bus-marker .bus-code {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 700 9px/1.4 var(--font-sans);
+  letter-spacing: 0.02em;
+  background: var(--card);
+  color: var(--foreground);
+  border-radius: 6px;
+  padding: 0 5px;
+  box-shadow: var(--shadow-pop);
+  white-space: nowrap;
 }
 .bus-marker.live {
   background: var(--route, var(--live));
