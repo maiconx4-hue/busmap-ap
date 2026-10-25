@@ -1,3 +1,4 @@
+import { createContext, createElement, useContext, type ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureVisitor, type VisitorCreds } from "@/lib/visitor";
@@ -49,7 +50,7 @@ export function geoErrorMessage(e: unknown) {
   return friendlyError(e);
 }
 
-export function useGpsShare() {
+function useGpsShareState() {
   const [status, setStatus] = useState<ShareStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [start, setStart] = useState<StartResult | null>(null);
@@ -288,4 +289,19 @@ export function useGpsShare() {
     stop,
     reset,
   };
+}
+
+export type GpsShare = ReturnType<typeof useGpsShareState>;
+const GpsShareContext = createContext<GpsShare | null>(null);
+
+/** Mounted once in the root so sharing survives page navigation. */
+export function GpsShareProvider({ children }: { children: ReactNode }) {
+  const value = useGpsShareState();
+  return createElement(GpsShareContext.Provider, { value }, children);
+}
+
+export function useGpsShare(): GpsShare {
+  const ctx = useContext(GpsShareContext);
+  if (!ctx) throw new Error("useGpsShare must be used inside GpsShareProvider");
+  return ctx;
 }

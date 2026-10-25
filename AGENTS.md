@@ -15,3 +15,4 @@
 - The UI derives "ativo/desatualizado" from timestamps + settings (`src/lib/freshness.ts`), never from stored status alone. Why: never show a session as active after updates stop, even if the cleanup cron lags.
 - Admin access = `user_roles` row granted by the auth trigger for the confirmed creator e-mail, checked by `is_admin()` in RLS/RPCs. Why: no public admin signup, no client-only gating.
 - Leaflet is only imported inside lazily-loaded components under `src/components/map/`. Why: it touches `window` at import time and breaks SSR.
+- GPS sharing state lives in GpsShareProvider (root) so it survives route changes; why: navigating away used to stop sharing.
