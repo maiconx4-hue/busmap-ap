@@ -1,0 +1,3 @@
+- [ ] Calcular movimento agregado com GPS válido por pelo menos 3 minutos, sem expor histórico pessoal.
+- [ ] Mostrar estimativa distinta do GPS real até o fim do trajeto e retomar dados reais compatíveis.
+- [ ] Verificar regras no banco, testes e mapa.
