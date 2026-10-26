@@ -49,6 +49,18 @@ function clearSessionId(): void {
     // Ignore unavailable storage.
   }
 }
+
+// BUSAP_NATIVE_GPS_BRIDGE_V1
+type NativeGpsPayload = { action: "GPS_UPDATE"; latitude: number; longitude: number; accuracy: number; timestamp: number };
+declare global { interface Window { busApGpsUpdate?: (payload: string | NativeGpsPayload) => void; } }
+function parseNativeGps(raw: string | NativeGpsPayload): GeolocationPosition | null {
+ try {
+  const v = typeof raw === "string" ? JSON.parse(raw) : raw;
+  const latitude=Number(v.latitude), longitude=Number(v.longitude), accuracy=Number(v.accuracy), timestamp=Number(v.timestamp);
+  if(v.action!=="GPS_UPDATE" || !Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180 || !Number.isFinite(accuracy) || accuracy < 0 || !Number.isFinite(timestamp) || timestamp <= 0) return null;
+  return {coords:{latitude,longitude,accuracy,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp} as GeolocationPosition;
+ } catch { return null; }
+}
 function getPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) return reject(new Error("GPS_UNAVAILABLE"));
@@ -69,6 +81,7 @@ export function geoErrorMessage(e: unknown) {
       return "GPS indisponível no momento. Verifique se a localização do aparelho está ligada.";
     if (c === 3) return "O GPS demorou demais para responder. Tente em um local aberto.";
   }
+  if (e instanceof Error && e.message === "GPS_NATIVE_TIMEOUT") return "O app não enviou GPS em 25 segundos. Confira LocationSensor e RunJavaScript.";
   if (e instanceof Error && e.message === "GPS_UNAVAILABLE")
     return "Este navegador não oferece GPS.";
   return friendlyError(e);
@@ -96,12 +109,17 @@ function useGpsShareState() {
   const watchId = useRef<number | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const latest = useRef<GeolocationPosition | null>(null);
+  const nativeMode = useRef(false);
+  const nativeLatest = useRef<GeolocationPosition | null>(null);
+  const nativeTimestamp = useRef(0);
   const session = useRef<StartResult | null>(null);
   const lastAckRef = useRef<number | null>(null);
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null);
   const sending = useRef(false);
 
   const cleanup = useCallback(() => {
+    if (nativeMode.current) { try { (window as Window & {AppInventor?:{setWebViewString?:(v:string)=>void}}).AppInventor?.setWebViewString?.("STOP_GPS"); } catch {} }
+    nativeMode.current = false;
     if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
     watchId.current = null;
     if (timer.current) clearInterval(timer.current);
@@ -191,7 +209,17 @@ function useGpsShareState() {
       setLastReject(null);
       try {
         setStatus("locating");
-        const [c, pos] = await Promise.all([ensureVisitor(), getPosition()]);
+        const ai = (window as Window & {AppInventor?:{setWebViewString?:(v:string)=>void}}).AppInventor;
+        let pos: GeolocationPosition;
+        if (ai?.setWebViewString) {
+          nativeMode.current=true; nativeLatest.current=null; nativeTimestamp.current=0;
+          setMessage("Aguardando GPS nativo do aplicativo…"); ai.setWebViewString("START_GPS");
+          const deadline=Date.now()+25000;
+          while(!nativeLatest.current && Date.now()<deadline) await new Promise(r=>setTimeout(r,250));
+          if(!nativeLatest.current) throw new Error("GPS_NATIVE_TIMEOUT");
+          pos=nativeLatest.current;
+        } else { nativeMode.current=false; pos=await getPosition(); }
+        const c = await ensureVisitor();
         creds.current = c;
         latest.current = pos;
         setAccuracy(pos.coords.accuracy);
@@ -221,7 +249,7 @@ function useGpsShareState() {
         lastAckRef.current = Date.now();
         setLastAck(Date.now());
         setStatus("active");
-        watchId.current = navigator.geolocation.watchPosition(
+        if (!nativeMode.current) watchId.current = navigator.geolocation.watchPosition(
           (p) => {
             latest.current = p;
             setAccuracy(p.coords.accuracy);
@@ -268,6 +296,20 @@ function useGpsShareState() {
       );
     }
   }, [cleanup]);
+
+  useEffect(() => {
+    const receive = (raw: string | NativeGpsPayload) => {
+      const p=parseNativeGps(raw);
+      if(!p || p.timestamp<=nativeTimestamp.current) return;
+      nativeTimestamp.current=p.timestamp; nativeLatest.current=p;
+      if(nativeMode.current) {
+        latest.current=p; setAccuracy(p.coords.accuracy);
+        setDebugPosition({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,timestamp:p.timestamp,source:"GPS nativo App Inventor"});
+      }
+    };
+    window.busApGpsUpdate=receive;
+    return ()=>{if(window.busApGpsUpdate===receive) delete window.busApGpsUpdate;};
+  }, []);
 
   // Background / visibility / connectivity handling
   useEffect(() => {
