@@ -15,6 +15,13 @@
       "when": 1792809112449,
       "tag": "0001_off_route_auto_stop",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793010209901,
+      "tag": "0002_bus_motion_estimates",
+      "breakpoints": true
     }
   ]
 }

@@ -170,6 +170,56 @@ export type Database = {
           },
         ]
       }
+      group_motion: {
+        Row: {
+          estimate_until: string | null
+          first_at: string
+          first_progress_m: number
+          geometry_hash: string
+          group_id: string
+          last_at: string
+          last_progress_m: number
+          observed_s: number
+          sample_count: number
+          speed_mps: number | null
+          total_m: number
+        }
+        Insert: {
+          estimate_until?: string | null
+          first_at: string
+          first_progress_m: number
+          geometry_hash: string
+          group_id: string
+          last_at: string
+          last_progress_m: number
+          observed_s?: number
+          sample_count?: number
+          speed_mps?: number | null
+          total_m: number
+        }
+        Update: {
+          estimate_until?: string | null
+          first_at?: string
+          first_progress_m?: number
+          geometry_hash?: string
+          group_id?: string
+          last_at?: string
+          last_progress_m?: number
+          observed_s?: number
+          sample_count?: number
+          speed_mps?: number | null
+          total_m?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_motion_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: true
+            referencedRelation: "bus_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_sessions: {
         Row: {
           accepted_count: number
@@ -506,6 +556,15 @@ export type Database = {
       expire_stale: { Args: never; Returns: Json }
       finalize_session: { Args: { p_session: string }; Returns: undefined }
       get_setting: { Args: { k: string }; Returns: number }
+      group_estimate: {
+        Args: { at_time?: string; gid: string }
+        Returns: {
+          based_at: string
+          lat: number
+          lng: number
+          until_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -520,6 +579,16 @@ export type Database = {
       in_service_area: { Args: { lat: number; lng: number }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       level_for_xp: { Args: { p_xp: number }; Returns: string }
+      project_route: {
+        Args: { geom: Json; plat: number; plng: number }
+        Returns: {
+          ambiguous: boolean
+          distance_m: number
+          progress_m: number
+          total_m: number
+        }[]
+      }
+      public_map_groups: { Args: never; Returns: Json }
       push_update: {
         Args: {
           p_accuracy: number
@@ -532,10 +601,18 @@ export type Database = {
         Returns: Json
       }
       recompute_group: { Args: { p_group: string }; Returns: undefined }
+      record_group_motion: { Args: { gid: string }; Returns: undefined }
       register_visitor: { Args: never; Returns: Json }
       route_distance_m: {
         Args: { p_lat: number; p_lng: number; p_route: string }
         Returns: number
+      }
+      route_point_at: {
+        Args: { geom: Json; progress: number }
+        Returns: {
+          lat: number
+          lng: number
+        }[]
       }
       run_maintenance: { Args: never; Returns: undefined }
       start_session: {
