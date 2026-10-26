@@ -25,6 +25,30 @@ export type EndResult = {
 
 const SESSION_KEY = "busmap.session.v1";
 
+// WebViews and privacy-restricted browsers may expose storage but reject access.
+function readSessionId(): string | null {
+  try {
+    return typeof sessionStorage !== "undefined" ? sessionStorage.getItem(SESSION_KEY) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionId(value: string): void {
+  try {
+    if (typeof sessionStorage !== "undefined") sessionStorage.setItem(SESSION_KEY, value);
+  } catch {
+    // The active session remains in React state even when persistence is unavailable.
+  }
+}
+
+function clearSessionId(): void {
+  try {
+    if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Ignore unavailable storage.
+  }
+}
 function getPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) return reject(new Error("GPS_UNAVAILABLE"));
@@ -78,7 +102,7 @@ function useGpsShareState() {
     wakeLock.current?.release().catch(() => {});
     wakeLock.current = null;
     session.current = null;
-    sessionStorage.removeItem(SESSION_KEY);
+    clearSessionId();
   }, []);
 
   const requestWakeLock = useCallback(async () => {
@@ -177,7 +201,7 @@ function useGpsShareState() {
         if (error) throw error;
         const r = data as unknown as StartResult;
         session.current = r;
-        sessionStorage.setItem(SESSION_KEY, r.session_id);
+        writeSessionId(r.session_id);
         setStart(r);
         setContributors(r.contributors);
         lastAckRef.current = Date.now();
@@ -250,7 +274,7 @@ function useGpsShareState() {
 
   // End a session left over from a previous page load
   useEffect(() => {
-    const leftover = sessionStorage.getItem(SESSION_KEY);
+    const leftover = readSessionId();
     if (leftover) {
       ensureVisitor()
         .then((c) =>
@@ -260,7 +284,7 @@ function useGpsShareState() {
             p_secret: c.secret,
           }),
         )
-        .finally(() => sessionStorage.removeItem(SESSION_KEY));
+        .finally(() => clearSessionId());
     }
     return () => {
       if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
