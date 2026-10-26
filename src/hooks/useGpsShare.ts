@@ -81,6 +81,13 @@ function useGpsShareState() {
   const [lastAck, setLastAck] = useState<number | null>(null);
   const [lastReject, setLastReject] = useState<string | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
+  const [debugPosition, setDebugPosition] = useState<{
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    timestamp: number;
+    source: string;
+  } | null>(null);
   const [contributors, setContributors] = useState(0);
   const [endResult, setEndResult] = useState<EndResult | null>(null);
   const [backgrounded, setBackgrounded] = useState(false);
@@ -188,6 +195,13 @@ function useGpsShareState() {
         creds.current = c;
         latest.current = pos;
         setAccuracy(pos.coords.accuracy);
+        setDebugPosition({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          timestamp: Date.now(),
+          source: "getCurrentPosition (WebView/navegador)",
+        });
         setStatus("starting");
         const { data, error } = await supabase.rpc("start_session", {
           p_visitor: c.visitor_id,
@@ -211,6 +225,13 @@ function useGpsShareState() {
           (p) => {
             latest.current = p;
             setAccuracy(p.coords.accuracy);
+            setDebugPosition({
+              latitude: p.coords.latitude,
+              longitude: p.coords.longitude,
+              accuracy: p.coords.accuracy,
+              timestamp: Date.now(),
+              source: "watchPosition (WebView/navegador)",
+            });
           },
           (err) => setMessage(geoErrorMessage(err)),
           { enableHighAccuracy: true, maximumAge: 3000, timeout: 30000 },
@@ -306,6 +327,7 @@ function useGpsShareState() {
     lastAck,
     lastReject,
     accuracy,
+    debugPosition,
     contributors,
     endResult,
     backgrounded,

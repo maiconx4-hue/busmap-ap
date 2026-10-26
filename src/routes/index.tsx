@@ -517,6 +517,20 @@ function SharePanel({
       {share.start && (
         <p className="rounded-xl bg-muted p-2 text-xs">{MATCH_TEXT[share.start.match]}</p>
       )}
+      {share.debugPosition && (
+        <div className="rounded-xl border border-dashed border-primary/50 bg-muted/70 p-2 text-[11px] font-mono">
+          <p className="font-bold">DIAGNÓSTICO GPS (temporário)</p>
+          <p>Fonte: {share.debugPosition.source}</p>
+          <p>Latitude: {share.debugPosition.latitude.toFixed(6)}</p>
+          <p>Longitude: {share.debugPosition.longitude.toFixed(6)}</p>
+          <p>Precisão: ±{Math.round(share.debugPosition.accuracy)} m</p>
+          <p>
+            Última leitura:{" "}
+            {new Date(share.debugPosition.timestamp).toLocaleTimeString("pt-BR")}
+          </p>
+        </div>
+      )}
+
       {share.start?.off_route && (
         <p className="rounded-xl border border-warn/50 p-2 text-xs">
           Você parece estar longe do trajeto desta linha. Confirme se escolheu a linha certa.
