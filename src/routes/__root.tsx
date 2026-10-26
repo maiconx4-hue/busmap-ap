@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#1f5f63" },
-      { title: "BusMap Macapá" },
+      { title: "Bus AP" },
       { name: "description", content: "Acompanhamento colaborativo de ônibus em Macapá." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

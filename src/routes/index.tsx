@@ -17,13 +17,13 @@ const BusMap = lazy(() => import("@/components/map/BusMap"));
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BusMap Macapá — ônibus colaborativo em tempo real" },
+      { title: "Bus AP — ônibus colaborativo em tempo real" },
       {
         name: "description",
         content:
           "Veja rotas e posições colaborativas de ônibus em Macapá, compartilhadas voluntariamente por passageiros.",
       },
-      { property: "og:title", content: "BusMap Macapá" },
+      { property: "og:title", content: "Bus AP" },
       {
         property: "og:description",
         content: "Rotas e posições colaborativas de ônibus em Macapá, em tempo real.",
@@ -159,7 +159,7 @@ function Index() {
               <Bus className="size-4" />
             </span>
             <div className="leading-tight">
-              <h1 className="text-base font-bold">BusMap Macapá</h1>
+              <h1 className="text-base font-bold">Bus AP</h1>
               <p className="text-[11px] text-muted-foreground">
                 Posições colaborativas · não oficial
               </p>
