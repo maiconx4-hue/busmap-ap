@@ -58,10 +58,10 @@ export function parseNativeGps(raw: unknown): GeolocationPosition | null {
     if (!v || typeof v !== "object" || (v as { action?: unknown }).action !== "GPS_UPDATE") return null;
     const o = v as Record<string, unknown>;
     const num = (x: unknown) => (typeof x === "number" ? x : typeof x === "string" && x.trim() ? Number(x) : NaN);
-    const latitude = num(o.latitude);
-    const longitude = num(o.longitude);
-    const accuracy = num(o.accuracy);
-    const timestamp = num(o.timestamp);
+    const latitude = num(o["latitude"]);
+    const longitude = num(o["longitude"]);
+    const accuracy = num(o["accuracy"]);
+    const timestamp = num(o["timestamp"]);
     if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) return null;
     if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return null;
     if (latitude === 0 && longitude === 0) return null;
