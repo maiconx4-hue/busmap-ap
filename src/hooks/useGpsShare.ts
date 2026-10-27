@@ -3,6 +3,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureVisitor, type VisitorCreds } from "@/lib/visitor";
 import { errorCode, friendlyError } from "@/lib/errors";
+import {
+  getBridge,
+  parseNativeGps,
+  readWebViewString,
+  sendNativeCommand,
+  START_GPS,
+  STOP_GPS,
+  type NativeGpsPayload,
+} from "@/lib/nativeGps";
 
 export type ShareStatus =
   "idle" | "locating" | "starting" | "active" | "reconnecting" | "paused" | "ended" | "error";
@@ -50,17 +59,6 @@ function clearSessionId(): void {
   }
 }
 
-// BUSAP_NATIVE_GPS_BRIDGE_V1
-type NativeGpsPayload = { action: "GPS_UPDATE"; latitude: number; longitude: number; accuracy: number; timestamp: number };
-declare global { interface Window { busApGpsUpdate?: (payload: string | NativeGpsPayload) => void; } }
-function parseNativeGps(raw: string | NativeGpsPayload): GeolocationPosition | null {
- try {
-  const v = typeof raw === "string" ? JSON.parse(raw) : raw;
-  const latitude=Number(v.latitude), longitude=Number(v.longitude), accuracy=Number(v.accuracy), timestamp=Number(v.timestamp);
-  if(v.action!=="GPS_UPDATE" || !Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180 || !Number.isFinite(accuracy) || accuracy < 0 || !Number.isFinite(timestamp) || timestamp <= 0) return null;
-  return {coords:{latitude,longitude,accuracy,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp} as GeolocationPosition;
- } catch { return null; }
-}
 function getPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) return reject(new Error("GPS_UNAVAILABLE"));
@@ -112,13 +110,18 @@ function useGpsShareState() {
   const nativeMode = useRef(false);
   const nativeLatest = useRef<GeolocationPosition | null>(null);
   const nativeTimestamp = useRef(0);
+  const nativeLastRaw = useRef<string | null>(null);
+  const nativePoll = useRef<ReturnType<typeof setInterval> | null>(null);
+  const receiveNative = useRef<(raw: unknown) => void>(() => {});
   const session = useRef<StartResult | null>(null);
   const lastAckRef = useRef<number | null>(null);
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null);
   const sending = useRef(false);
 
   const cleanup = useCallback(() => {
-    if (nativeMode.current) { try { (window as Window & {AppInventor?:{setWebViewString?:(v:string)=>void}}).AppInventor?.setWebViewString?.("STOP_GPS"); } catch {} }
+    if (nativeMode.current) sendNativeCommand(STOP_GPS);
+    if (nativePoll.current) clearInterval(nativePoll.current);
+    nativePoll.current = null;
     nativeMode.current = false;
     if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
     watchId.current = null;
@@ -209,16 +212,32 @@ function useGpsShareState() {
       setLastReject(null);
       try {
         setStatus("locating");
-        const ai = (window as Window & {AppInventor?:{setWebViewString?:(v:string)=>void}}).AppInventor;
         let pos: GeolocationPosition;
-        if (ai?.setWebViewString) {
-          nativeMode.current=true; nativeLatest.current=null; nativeTimestamp.current=0;
-          setMessage("Aguardando GPS nativo do aplicativo…"); ai.setWebViewString("START_GPS");
-          const deadline=Date.now()+25000;
-          while(!nativeLatest.current && Date.now()<deadline) await new Promise(r=>setTimeout(r,250));
-          if(!nativeLatest.current) throw new Error("GPS_NATIVE_TIMEOUT");
-          pos=nativeLatest.current;
-        } else { nativeMode.current=false; pos=await getPosition(); }
+        if (getBridge()) {
+          nativeMode.current = true;
+          nativeLatest.current = null;
+          nativeTimestamp.current = 0;
+          // Ignore whatever string was left in WebViewString before this request.
+          nativeLastRaw.current = readWebViewString();
+          setMessage("Aguardando GPS nativo do aplicativo…");
+          sendNativeCommand(START_GPS);
+          if (nativePoll.current) clearInterval(nativePoll.current);
+          nativePoll.current = setInterval(() => {
+            const raw = readWebViewString();
+            if (raw && raw !== nativeLastRaw.current) {
+              nativeLastRaw.current = raw;
+              receiveNative.current(raw);
+            }
+          }, 500);
+          const deadline = Date.now() + 25000;
+          while (!nativeLatest.current && Date.now() < deadline)
+            await new Promise((r) => setTimeout(r, 250));
+          if (!nativeLatest.current) throw new Error("GPS_NATIVE_TIMEOUT");
+          pos = nativeLatest.current;
+        } else {
+          nativeMode.current = false;
+          pos = await getPosition();
+        }
         const c = await ensureVisitor();
         creds.current = c;
         latest.current = pos;
