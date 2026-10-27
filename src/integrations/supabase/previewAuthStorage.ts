@@ -98,27 +98,7 @@ export function brokeredPreviewStorage(): PreviewAuthStorage | undefined {
   let firstGet = true;
   const RETRY_DELAY = 250;
   // Blocked third-party storage throws here; seeding must not break broker reads.
-  const readLocal = (key: string): string | null | undefined => {
-    try {
-      return typeof localStorage !== "undefined" ? localStorage.getItem(key) : undefined;
-    } catch {
-      return undefined;
-    }
-  };
-  const writeLocal = (key: string, value: string): void => {
-    try {
-      if (typeof localStorage !== "undefined") localStorage.setItem(key, value);
-    } catch {
-      // Auth broker can still supply the session if local persistence is blocked.
-    }
-  };
-  const removeLocal = (key: string): void => {
-    try {
-      if (typeof localStorage !== "undefined") localStorage.removeItem(key);
-    } catch {
-      // Ignore unavailable storage.
-    }
-  };
+  const readLocal = (key: string): string | null | undefined => { try { return localStorage.getItem(key); } catch { return undefined; } };
 
   return {
     getItem: async (key) => {
@@ -134,29 +114,29 @@ export function brokeredPreviewStorage(): PreviewAuthStorage | undefined {
       // the broker later goes silent. A null value means never-synced -> keep local.
       if (res?.ok && res.value !== null) {
         if (res.value === '') {
-          if (local !== undefined && readLocal(key) === local) removeLocal(key);
+          if (local !== undefined && readLocal(key) === local) localStorage.removeItem(key);
           return null;
         }
         // Seed this origin so a new tab, whose editor holds no session, stays signed in.
         if (local === null && readLocal(key) === null) {
-          writeLocal(key, res.value);
+          try { localStorage.setItem(key, res.value); } catch { /* storage full: still return the editor's session */ }
         }
         return res.value;
       }
-      return readLocal(key) ?? null;
+      return localStorage.getItem(key);
     },
     setItem: (key, value) => {
-      writeLocal(key, value);
+      localStorage.setItem(key, value);
       return request('lovable-preview-auth:set', key, value).then((res) => {
-        if (res?.ok && res.value !== null && readLocal(key) === value) {
-          if (res.value === '') removeLocal(key);
-          else writeLocal(key, res.value);
+        if (res?.ok && res.value !== null && localStorage.getItem(key) === value) {
+          if (res.value === '') localStorage.removeItem(key);
+          else localStorage.setItem(key, res.value);
         }
       });
     },
     removeItem: (key) => {
       const local = readLocal(key);
-      removeLocal(key);
+      localStorage.removeItem(key);
       return request('lovable-preview-auth:remove', key, local ?? undefined).then(() => {});
     },
   };
