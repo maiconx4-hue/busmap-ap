@@ -16,3 +16,4 @@
 - Admin access = `user_roles` row granted by the auth trigger for the confirmed creator e-mail, checked by `is_admin()` in RLS/RPCs. Why: no public admin signup, no client-only gating.
 - Leaflet is only imported inside lazily-loaded components under `src/components/map/`. Why: it touches `window` at import time and breaks SSR.
 - GPS sharing state lives in GpsShareProvider (root) so it survives route changes; why: navigating away used to stop sharing.
+- The native App Inventor GPS bridge (`src/lib/nativeGps.ts` + its use in `useGpsShare.ts`: JSON START_GPS/STOP_GPS via setWebViewString, 500ms getWebViewString polling, strict 5-field GPS_UPDATE validation) is a fixed protocol verified on device; never change or remove it. Why: the Android app depends on it exactly.
