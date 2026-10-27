@@ -247,7 +247,7 @@ function useGpsShareState() {
           longitude: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
           timestamp: Date.now(),
-          source: "getCurrentPosition (WebView/navegador)",
+          source: nativeMode.current ? "GPS nativo App Inventor" : "getCurrentPosition (WebView/navegador)",
         });
         setStatus("starting");
         const { data, error } = await supabase.rpc("start_session", {
@@ -317,17 +317,28 @@ function useGpsShareState() {
   }, [cleanup]);
 
   useEffect(() => {
-    const receive = (raw: string | NativeGpsPayload) => {
-      const p=parseNativeGps(raw);
-      if(!p || p.timestamp<=nativeTimestamp.current) return;
-      nativeTimestamp.current=p.timestamp; nativeLatest.current=p;
-      if(nativeMode.current) {
-        latest.current=p; setAccuracy(p.coords.accuracy);
-        setDebugPosition({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,timestamp:p.timestamp,source:"GPS nativo App Inventor"});
-      }
+    const receive = (raw: unknown) => {
+      if (!nativeMode.current) return; // only while native sharing was requested
+      const p = parseNativeGps(raw);
+      if (!p || p.timestamp <= nativeTimestamp.current) return; // invalid or repeated
+      nativeTimestamp.current = p.timestamp;
+      nativeLatest.current = p;
+      latest.current = p;
+      setAccuracy(p.coords.accuracy);
+      setDebugPosition({
+        latitude: p.coords.latitude,
+        longitude: p.coords.longitude,
+        accuracy: p.coords.accuracy,
+        timestamp: p.timestamp,
+        source: "GPS nativo App Inventor",
+      });
     };
-    window.busApGpsUpdate=receive;
-    return ()=>{if(window.busApGpsUpdate===receive) delete window.busApGpsUpdate;};
+    receiveNative.current = receive;
+    const fn = (payload: string | NativeGpsPayload) => receive(payload);
+    window.busApGpsUpdate = fn;
+    return () => {
+      if (window.busApGpsUpdate === fn) delete window.busApGpsUpdate;
+    };
   }, []);
 
   // Background / visibility / connectivity handling
