@@ -108,7 +108,7 @@ export function loadAdsScript(): void {
   const script = document.createElement("script");
   script.async = true;
   script.crossOrigin = "anonymous";
-  script.dataset.busmapAds = "true";
+  script.dataset["busmapAds"] = "true";
   script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_CLIENT_ID}`;
   document.head.appendChild(script);
   adsLoaded = true;
