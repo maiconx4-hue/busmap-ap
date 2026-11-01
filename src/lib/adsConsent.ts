@@ -101,15 +101,15 @@ let adsLoaded = false;
 
 export function loadAdsScript(): void {
   if (adsLoaded) return;
-  if (document.querySelector('script[data-busmap-ads="true"]')) {
+  const src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_CLIENT_ID}`;
+  if (Array.from(document.scripts).some((script) => script.src === src)) {
     adsLoaded = true;
     return;
   }
   const script = document.createElement("script");
   script.async = true;
   script.crossOrigin = "anonymous";
-  script.dataset["busmapAds"] = "true";
-  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_CLIENT_ID}`;
+  script.src = src;
   document.head.appendChild(script);
   adsLoaded = true;
 }
