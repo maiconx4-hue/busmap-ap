@@ -1,5 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ADS_CONSENT_RESET_EVENT, clearAdsConsent } from "@/lib/adsConsent";
 
 export const Route = createFileRoute("/privacidade")({
   head: () => ({
@@ -75,6 +77,30 @@ function Privacy() {
         Pelo perfil você pode alterar o apelido, ativar o anonimato e excluir sua conta. A exclusão
         apaga perfil, experiência e conquistas, e desvincula as sessões, que permanecem apenas como
         estatística anônima até expirarem.
+      </Section>
+      <Section title="Publicidade (Google AdSense)">
+        <p>
+          Exibimos anúncios do Google AdSense para manter o app gratuito. Com o seu consentimento,
+          o Google pode usar cookies e identificadores do dispositivo para exibir e medir anúncios,
+          conforme a política de privacidade do Google. Os anúncios só carregam depois do seu
+          aceite; se você recusar, o mapa e todas as funções continuam funcionando normalmente, sem
+          anúncios.
+        </p>
+        <p>
+          Sua escolha fica gravada neste navegador com a data e o texto do aviso exibido. Você pode
+          mudar de ideia a qualquer momento pelo botão abaixo.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-2"
+          onClick={() => {
+            clearAdsConsent();
+            window.dispatchEvent(new Event(ADS_CONSENT_RESET_EVENT));
+          }}
+        >
+          Revisar minha escolha sobre anúncios
+        </Button>
       </Section>
     </main>
   );

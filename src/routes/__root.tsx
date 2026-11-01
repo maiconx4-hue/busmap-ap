@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { GpsShareProvider } from "@/hooks/useGpsShare";
+import { AdsConsentBanner } from "@/components/AdsConsentBanner";
 
 function NotFoundComponent() {
   return (
@@ -139,6 +140,7 @@ function RootComponent() {
         <Outlet />
       </GpsShareProvider>
       <Toaster richColors position="top-center" />
+      <AdsConsentBanner />
     </QueryClientProvider>
   );
 }
