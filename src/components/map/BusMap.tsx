@@ -55,10 +55,23 @@ export default function BusMap({
       MACAPA_CENTER,
       13,
     );
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    const street = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(m);
+    const satellite = L.layerGroup([
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        { maxZoom: 19, maxNativeZoom: 18, attribution: "Imagens &copy; Esri, Maxar, Earthstar Geographics" },
+      ),
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        { maxZoom: 19, maxNativeZoom: 18 },
+      ),
+    ]);
+    L.control
+      .layers({ Mapa: street, "Satélite": satellite }, undefined, { position: "bottomright" })
+      .addTo(m);
     L.control.zoom({ position: "bottomright" }).addTo(m);
     routeLayer.current = L.layerGroup().addTo(m);
     groupLayer.current = L.layerGroup().addTo(m);
