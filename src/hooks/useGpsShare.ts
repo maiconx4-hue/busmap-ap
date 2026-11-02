@@ -9,6 +9,7 @@ import {
   readWebViewString,
   sendNativeCommand,
   START_GPS,
+  sessionStartedMessage,
   STOP_GPS,
   type NativeGpsPayload,
 } from "@/lib/nativeGps";

@@ -22,3 +22,11 @@ describe("App Inventor protocol", () => {
   it("rejects timestamp in seconds", () => expect(parseNativeGps({ ...ok, timestamp: 1790000000 })).toBeNull());
   it("rejects non-JSON strings", () => expect(parseNativeGps("START_GPS")).toBeNull());
 });
+
+import { sessionStartedMessage } from "@/lib/nativeGps";
+describe("SESSION_STARTED", () => {
+  it("carries the session credentials", () => {
+    const m = JSON.parse(sessionStartedMessage({ session_id: "s", visitor_id: "v", secret: "k", update_interval_s: 10 }));
+    expect(m).toEqual({ action: "SESSION_STARTED", session_id: "s", visitor_id: "v", secret: "k", update_interval_s: 10 });
+  });
+});
