@@ -25,6 +25,22 @@ declare global {
 export const START_GPS = JSON.stringify({ action: "START_GPS" });
 export const STOP_GPS = JSON.stringify({ action: "STOP_GPS" });
 
+/** Additive message: credentials the Android app needs to call push_update/end_session itself. */
+export function sessionStartedMessage(s: {
+  session_id: string;
+  visitor_id: string;
+  secret: string;
+  update_interval_s: number;
+}): string {
+  return JSON.stringify({
+    action: "SESSION_STARTED",
+    session_id: s.session_id,
+    visitor_id: s.visitor_id,
+    secret: s.secret,
+    update_interval_s: s.update_interval_s,
+  });
+}
+
 export function getBridge(): AppInventorBridge | null {
   if (typeof window === "undefined") return null;
   const ai = window.AppInventor;

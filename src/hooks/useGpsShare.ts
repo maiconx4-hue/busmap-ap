@@ -9,6 +9,7 @@ import {
   readWebViewString,
   sendNativeCommand,
   START_GPS,
+  sessionStartedMessage,
   STOP_GPS,
   type NativeGpsPayload,
 } from "@/lib/nativeGps";
@@ -264,6 +265,16 @@ function useGpsShareState() {
         session.current = r;
         writeSessionId(r.session_id);
         setStart(r);
+        if (nativeMode.current) {
+          const msg = sessionStartedMessage({
+            session_id: r.session_id,
+            visitor_id: c.visitor_id,
+            secret: c.secret,
+            update_interval_s: r.update_interval_s,
+          });
+          nativeLastRaw.current = msg;
+          sendNativeCommand(msg);
+        }
         setContributors(r.contributors);
         lastAckRef.current = Date.now();
         setLastAck(Date.now());
