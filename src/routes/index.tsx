@@ -298,8 +298,7 @@ function Index() {
                 Estou nesta linha — compartilhar
               </Button>
             </div>
-          ) : (
-            collapsed ? (
+          ) : collapsed ? (
               <>
                 <button
                   type="button"
@@ -385,7 +384,6 @@ function Index() {
                 </Link>
               </p>
             </>
-            )
           )}
         </div>
       </section>
