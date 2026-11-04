@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Veja rotas e posições colaborativas de ônibus em Macapá, compartilhadas voluntariamente por passageiros.",
+          "Veja rotas e posições colaborativas de ônibus em Macapá, compartilhadas voluntariamente por passageiros e motoristas.",
       },
       { property: "og:title", content: "Bus AP" },
       {
@@ -348,7 +348,7 @@ function Index() {
                 </Button>
               </div>
               <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Info className="size-3" /> Dados enviados voluntariamente por passageiros. Não é
+                <Info className="size-3" /> Dados enviados voluntariamente por passageiros e motoristas. Não é
                 rastreamento oficial.{" "}
                 <Link to="/privacidade" className="underline">
                   Privacidade

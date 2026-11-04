@@ -32,7 +32,17 @@ export interface AdsConsentRecord {
 
 export function readAdsConsent(): AdsConsentRecord | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw: string | null = null;
+    try {
+      raw = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      raw = null;
+    }
+    if (!raw) {
+      // Alguns WebViews (App Inventor) não guardam localStorage entre aberturas: usa cookie.
+      const m = document.cookie.match(new RegExp(`(?:^|; )${STORAGE_KEY}=([^;]*)`));
+      raw = m ? decodeURIComponent(m[1] ?? "") : null;
+    }
     if (!raw) return null;
     const parsed = JSON.parse(raw) as AdsConsentRecord;
     if (parsed.choice !== "accepted" && parsed.choice !== "rejected") return null;
@@ -53,7 +63,12 @@ export function saveAdsConsent(choice: AdsConsentChoice, region: string): AdsCon
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
   } catch {
-    // armazenamento indisponível: a escolha vale só para esta visita
+    // armazenamento indisponível
+  }
+  try {
+    document.cookie = `${STORAGE_KEY}=${encodeURIComponent(JSON.stringify(record))}; max-age=31536000; path=/; SameSite=Lax`;
+  } catch {
+    // ignora
   }
   return record;
 }
@@ -61,6 +76,7 @@ export function saveAdsConsent(choice: AdsConsentChoice, region: string): AdsCon
 export function clearAdsConsent(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    document.cookie = `${STORAGE_KEY}=; max-age=0; path=/`;
   } catch {
     // ignora
   }
