@@ -41,7 +41,7 @@ export function readAdsConsent(): AdsConsentRecord | null {
     if (!raw) {
       // Alguns WebViews (App Inventor) não guardam localStorage entre aberturas: usa cookie.
       const m = document.cookie.match(new RegExp(`(?:^|; )${STORAGE_KEY}=([^;]*)`));
-      raw = m ? decodeURIComponent(m[1]) : null;
+      raw = m ? decodeURIComponent(m[1] ?? "") : null;
     }
     if (!raw) return null;
     const parsed = JSON.parse(raw) as AdsConsentRecord;
