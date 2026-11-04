@@ -1,6 +1,6 @@
 import { Suspense, lazy, useMemo, useState } from "react";
 import { ClientOnly, Link, createFileRoute } from "@tanstack/react-router";
-import { Bus, Crosshair, Info, LocateFixed, Radio, Settings, Square, User, X } from "lucide-react";
+import { Bus, ChevronDown, ChevronUp, Crosshair, Info, LocateFixed, Radio, Settings, Square, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMapData, type BusGroup } from "@/hooks/useMapData";
 import { useGpsShare } from "@/hooks/useGpsShare";
@@ -52,6 +52,7 @@ function Index() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [shareCtx, setShareCtx] = useState<{ route: string | null; group: string | null }>({
     route: null,
     group: null,
@@ -297,8 +298,33 @@ function Index() {
                 Estou nesta linha — compartilhar
               </Button>
             </div>
-          ) : (
+          ) : collapsed ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setCollapsed(false)}
+                  className="mx-auto flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-medium text-muted-foreground"
+                  aria-label="Abrir painel"
+                >
+                  <ChevronUp className="size-4" /> Abrir painel
+                </button>
+                <div
+                  className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
+                  aria-label="Espaço reservado para publicidade"
+                >
+                  Publicidade
+                </div>
+              </>
+            ) : (
             <>
+              <button
+                type="button"
+                onClick={() => setCollapsed(true)}
+                className="mx-auto -mt-2 flex items-center rounded-full px-3 text-muted-foreground"
+                aria-label="Recolher painel"
+              >
+                <ChevronDown className="size-5" />
+              </button>
               {share.status === "ended" && <EndSummary share={share} signedIn={!!user} />}
               <div className="grid grid-cols-3 gap-2 text-center">
                 <Stat n={routes.length} label="rotas" />
@@ -342,7 +368,10 @@ function Index() {
                   variant="bus"
                   className="h-11 flex-1 rounded-xl text-base"
                   disabled={routes.length === 0}
-                  onClick={() => openShare(routeFilter, null)}
+                  onClick={() => {
+                    setCollapsed(true);
+                    openShare(routeFilter, null);
+                  }}
                 >
                   <Crosshair /> Estou no ônibus
                 </Button>
