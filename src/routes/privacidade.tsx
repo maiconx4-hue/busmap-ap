@@ -33,7 +33,7 @@ function Privacy() {
       </p>
       <Section title="Finalidade">
         O BusMap Macapá exibe posições aproximadas de ônibus a partir de localizações compartilhadas
-        voluntariamente por passageiros. Não é um serviço oficial de nenhuma empresa de transporte
+        voluntariamente por passageiros e motoristas. Não é um serviço oficial de nenhuma empresa de transporte
         ou órgão público.
       </Section>
       <Section title="O que coletamos">
