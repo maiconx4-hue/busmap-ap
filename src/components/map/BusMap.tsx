@@ -29,6 +29,8 @@ type Props = {
   followId?: string | null;
   onSelectGroup: (id: string) => void;
   onSelectRoute: (id: string) => void;
+  fitRoute?: { id: string; key: number } | null;
+  onMapClick?: () => void;
 };
 
 export default function BusMap({
@@ -40,14 +42,16 @@ export default function BusMap({
   followId = null,
   onSelectGroup,
   onSelectRoute,
+  fitRoute = null,
+  onMapClick,
 }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const routeLayer = useRef<L.LayerGroup | null>(null);
   const groupLayer = useRef<L.LayerGroup | null>(null);
   const meLayer = useRef<L.LayerGroup | null>(null);
-  const cb = useRef({ onSelectGroup, onSelectRoute });
-  cb.current = { onSelectGroup, onSelectRoute };
+  const cb = useRef({ onSelectGroup, onSelectRoute, onMapClick });
+  cb.current = { onSelectGroup, onSelectRoute, onMapClick };
 
   useEffect(() => {
     if (!el.current || map.current) return;
@@ -76,6 +80,7 @@ export default function BusMap({
     routeLayer.current = L.layerGroup().addTo(m);
     groupLayer.current = L.layerGroup().addTo(m);
     meLayer.current = L.layerGroup().addTo(m);
+    m.on("click", () => cb.current.onMapClick?.());
     map.current = m;
     return () => {
       m.remove();
@@ -87,10 +92,11 @@ export default function BusMap({
     const layer = routeLayer.current;
     if (!layer) return;
     layer.clearLayers();
+    // Lines stay hidden until the user picks one.
     routes.forEach((r) => {
+      if (r.id !== selectedRouteId) return;
       if (!isLatLngArray(r.geometry) || r.geometry.length < 2) return;
-      const dim = selectedRouteId && selectedRouteId !== r.id;
-      L.polyline(r.geometry, { color: r.color, weight: dim ? 3 : 6, opacity: dim ? 0.25 : 0.85 })
+      L.polyline(r.geometry, { color: r.color, weight: 6, opacity: 0.85 })
         .on("click", () => cb.current.onSelectRoute(r.id))
         .addTo(layer);
     });
@@ -142,6 +148,14 @@ export default function BusMap({
   useEffect(() => {
     if (focus && map.current) map.current.flyTo(focus.pos, focus.zoom, { duration: 0.8 });
   }, [focus]);
+
+  useEffect(() => {
+    if (!fitRoute || !map.current) return;
+    const r = routes.find((x) => x.id === fitRoute.id);
+    if (r && isLatLngArray(r.geometry) && r.geometry.length >= 2)
+      map.current.flyToBounds(L.latLngBounds(r.geometry), { padding: [40, 140], duration: 0.8 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitRoute]);
 
   // Follow mode: keep the followed bus centered; a user drag pauses it.
   const [paused, setPaused] = useState(false);

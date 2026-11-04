@@ -58,6 +58,8 @@ function Index() {
   });
   const [userPos, setUserPos] = useState<LatLng | null>(null);
   const [focus, setFocus] = useState<{ pos: LatLng; zoom: number; key: number } | null>(null);
+  const [fitRoute, setFitRoute] = useState<{ id: string; key: number } | null>(null);
+  const [nameTip, setNameTip] = useState<string | null>(null);
   const [locMsg, setLocMsg] = useState<string | null>(null);
 
   const timeout = settings["session_timeout_s"] ?? 60;
@@ -135,6 +137,8 @@ function Index() {
             selectedRouteId={routeFilter}
             userPos={userPos}
             focus={focus}
+            fitRoute={fitRoute}
+            onMapClick={() => setNameTip(null)}
             followId={selectedGroup ?? (sharing ? (share.start?.group_id ?? null) : null)}
             onSelectGroup={(id) => {
               setSelectedGroup(id);
@@ -196,7 +200,13 @@ function Index() {
         </div>
         {routes.length > 0 && (
           <div className="pointer-events-auto -mx-3 flex gap-2 overflow-x-auto px-3 pb-1">
-            <Chip active={!routeFilter} onClick={() => setRouteFilter(null)}>
+            <Chip
+              active={!routeFilter}
+              onClick={() => {
+                setRouteFilter(null);
+                setNameTip(null);
+              }}
+            >
               Todas
             </Chip>
             {routes.map((r) => (
@@ -204,11 +214,35 @@ function Index() {
                 key={r.id}
                 active={routeFilter === r.id}
                 color={r.color}
-                onClick={() => setRouteFilter(routeFilter === r.id ? null : r.id)}
+                onClick={() => {
+                  if (routeFilter === r.id) {
+                    setRouteFilter(null);
+                    setNameTip(null);
+                    setSelectedGroup(null);
+                    return;
+                  }
+                  setRouteFilter(r.id);
+                  setNameTip(r.id);
+                  const bus = visibleGroups.find(
+                    (g) => g.route_id === r.id && g.state === "ativo",
+                  );
+                  if (bus) {
+                    setSelectedGroup(bus.id);
+                    setSelectedRoute(null);
+                  } else {
+                    setSelectedGroup(null);
+                    setFitRoute({ id: r.id, key: Date.now() });
+                  }
+                }}
               >
                 {r.code}
               </Chip>
             ))}
+          </div>
+        )}
+        {nameTip && routeById.get(nameTip) && (
+          <div className="pointer-events-auto mx-auto w-fit max-w-full rounded-full bg-card/95 px-3 py-1 text-xs font-medium text-foreground shadow-[var(--shadow-pop)] animate-in fade-in">
+            {routeById.get(nameTip)!.code} · {routeById.get(nameTip)!.name}
           </div>
         )}
       </header>
