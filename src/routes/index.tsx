@@ -79,6 +79,9 @@ function Index() {
   const sharing = ["locating", "starting", "active", "reconnecting", "paused"].includes(
     share.status,
   );
+  useEffect(() => {
+    if (!sharing) setShareExpanded(false);
+  }, [sharing]);
 
   const group = visibleGroups.find((g) => g.id === selectedGroup) ?? null;
   const routeDetail = routeById.get(selectedRoute ?? "") ?? null;
