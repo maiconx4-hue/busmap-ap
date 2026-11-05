@@ -256,7 +256,38 @@ function Index() {
       <section className="absolute inset-x-0 bottom-0 z-[500] mx-auto max-w-lg p-3">
         <div className="space-y-3 rounded-3xl bg-card p-4 shadow-[var(--shadow-sheet)]">
           {sharing ? (
-            <SharePanel share={share} timeout={timeout} />
+            shareExpanded ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShareExpanded(false)}
+                  className="mx-auto flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-medium text-muted-foreground"
+                  aria-label="Recolher detalhes"
+                >
+                  <ChevronDown className="size-4" /> Recolher detalhes
+                </button>
+                <SharePanel share={share} timeout={timeout} />
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShareExpanded(true)}
+                  className="mx-auto flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-medium text-muted-foreground"
+                  aria-label="Abrir detalhes do compartilhamento"
+                >
+                  <ChevronUp className="size-4" /> Detalhes
+                </button>
+                <AdSlot />
+                <Button
+                  variant="destructive"
+                  className="h-11 w-full rounded-xl text-base"
+                  onClick={share.stop}
+                >
+                  <Square /> Parar de compartilhar
+                </Button>
+              </>
+            )
           ) : group ? (
             <GroupPanel
               group={group}
