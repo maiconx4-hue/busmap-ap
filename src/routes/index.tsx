@@ -570,8 +570,8 @@ function AdSlot() {
   const ref = useRef<HTMLModElement>(null);
   useEffect(() => {
     const el = ref.current;
-    if (!el || el.dataset.pushed) return;
-    el.dataset.pushed = "1";
+    if (!el || el.dataset["pushed"]) return;
+    el.dataset["pushed"] = "1";
     try {
       const w = window as unknown as { adsbygoogle?: unknown[] };
       (w.adsbygoogle = w.adsbygoogle || []).push({});
