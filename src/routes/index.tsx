@@ -343,12 +343,7 @@ function Index() {
                 >
                   <ChevronUp className="size-4" /> Abrir painel
                 </button>
-                <div
-                  className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
-                  aria-label="Espaço reservado para publicidade"
-                >
-                  Publicidade
-                </div>
+                <AdSlot />
               </>
             ) : (
             <>
@@ -383,12 +378,7 @@ function Index() {
               ) : null}
               {locMsg && <p className="text-xs text-destructive">{locMsg}</p>}
               {/* Espaço reservado para publicidade (Google AdSense) no futuro */}
-              <div
-                className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
-                aria-label="Espaço reservado para publicidade"
-              >
-                Publicidade
-              </div>
+              <AdSlot />
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -572,6 +562,17 @@ function GroupPanel({
           Ajudar a atualizar esta localização
         </Button>
       )}
+    </div>
+  );
+}
+
+function AdSlot() {
+  return (
+    <div
+      className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
+      aria-label="Espaço reservado para publicidade"
+    >
+      Publicidade
     </div>
   );
 }
