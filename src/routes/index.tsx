@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { ClientOnly, Link, createFileRoute } from "@tanstack/react-router";
 import { Bus, ChevronDown, ChevronUp, Crosshair, Info, LocateFixed, Radio, Settings, Square, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -567,12 +567,29 @@ function GroupPanel({
 }
 
 function AdSlot() {
+  const ref = useRef<HTMLModElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || el.dataset["pushed"]) return;
+    el.dataset["pushed"] = "1";
+    try {
+      const w = window as unknown as { adsbygoogle?: unknown[] };
+      (w.adsbygoogle = w.adsbygoogle || []).push({});
+    } catch {
+      // ignora
+    }
+  }, []);
   return (
-    <div
-      className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
-      aria-label="Espaço reservado para publicidade"
-    >
-      Publicidade
+    <div className="min-h-14 overflow-hidden rounded-xl" aria-label="Publicidade">
+      <ins
+        ref={ref}
+        className="adsbygoogle"
+        style={{ display: "block" }}
+        data-ad-client="ca-pub-2404280823675572"
+        data-ad-slot="4090081477"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
     </div>
   );
 }
