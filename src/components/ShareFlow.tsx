@@ -63,7 +63,7 @@ export function ShareFlow({
 
   return (
     <Dialog open={open} onOpenChange={reset}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
         {step === "route" ? (
           <>
             <DialogHeader>
@@ -190,15 +190,15 @@ export function ShareFlow({
                 </span>
               </label>
             </div>
-            <div className="flex gap-2">
-              {!initialRouteId && (
-                <Button variant="outline" onClick={() => setStep("route")}>
-                  Trocar linha
-                </Button>
-              )}
-              <Button
-                variant="live"
-                className="flex-1"
+              <div className="flex gap-2">
+                {!initialRouteId && (
+                  <Button variant="outline" className="whitespace-normal" onClick={() => setStep("route")}>
+                    Trocar linha
+                  </Button>
+                )}
+                <Button
+                  variant="live"
+                  className="flex-1 whitespace-normal"
                 disabled={!agree || !routeId || busy}
                 onClick={() => routeId && onConfirm(routeId, targetGroupId)}
               >
