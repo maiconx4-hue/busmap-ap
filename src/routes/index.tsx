@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { ClientOnly, Link, createFileRoute } from "@tanstack/react-router";
 import { Bus, ChevronDown, ChevronUp, Crosshair, Info, LocateFixed, Radio, Settings, Square, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,7 @@ function Index() {
   const [fitRoute, setFitRoute] = useState<{ id: string; key: number } | null>(null);
   const [nameTip, setNameTip] = useState<string | null>(null);
   const [locMsg, setLocMsg] = useState<string | null>(null);
+  const [shareExpanded, setShareExpanded] = useState(false);
 
   const timeout = settings["session_timeout_s"] ?? 60;
   const retention = settings["stale_retention_s"] ?? 900;
