@@ -63,7 +63,7 @@ export function ShareFlow({
 
   return (
     <Dialog open={open} onOpenChange={reset}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
         {step === "route" ? (
           <>
             <DialogHeader>
