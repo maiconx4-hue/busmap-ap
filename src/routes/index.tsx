@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { ClientOnly, Link, createFileRoute } from "@tanstack/react-router";
 import { Bus, ChevronDown, ChevronUp, Crosshair, Info, LocateFixed, Radio, Settings, Square, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,7 @@ function Index() {
   const [fitRoute, setFitRoute] = useState<{ id: string; key: number } | null>(null);
   const [nameTip, setNameTip] = useState<string | null>(null);
   const [locMsg, setLocMsg] = useState<string | null>(null);
+  const [shareExpanded, setShareExpanded] = useState(false);
 
   const timeout = settings["session_timeout_s"] ?? 60;
   const retention = settings["stale_retention_s"] ?? 900;
@@ -78,6 +79,9 @@ function Index() {
   const sharing = ["locating", "starting", "active", "reconnecting", "paused"].includes(
     share.status,
   );
+  useEffect(() => {
+    if (!sharing) setShareExpanded(false);
+  }, [sharing]);
 
   const group = visibleGroups.find((g) => g.id === selectedGroup) ?? null;
   const routeDetail = routeById.get(selectedRoute ?? "") ?? null;
@@ -252,7 +256,38 @@ function Index() {
       <section className="absolute inset-x-0 bottom-0 z-[500] mx-auto max-w-lg p-3">
         <div className="space-y-3 rounded-3xl bg-card p-4 shadow-[var(--shadow-sheet)]">
           {sharing ? (
-            <SharePanel share={share} timeout={timeout} />
+            shareExpanded ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShareExpanded(false)}
+                  className="mx-auto flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-medium text-muted-foreground"
+                  aria-label="Recolher detalhes"
+                >
+                  <ChevronDown className="size-4" /> Recolher detalhes
+                </button>
+                <SharePanel share={share} timeout={timeout} />
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShareExpanded(true)}
+                  className="mx-auto flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-medium text-muted-foreground"
+                  aria-label="Abrir detalhes do compartilhamento"
+                >
+                  <ChevronUp className="size-4" /> Detalhes
+                </button>
+                <AdSlot />
+                <Button
+                  variant="destructive"
+                  className="h-11 w-full rounded-xl text-base"
+                  onClick={share.stop}
+                >
+                  <Square /> Parar de compartilhar
+                </Button>
+              </>
+            )
           ) : group ? (
             <GroupPanel
               group={group}
@@ -308,12 +343,7 @@ function Index() {
                 >
                   <ChevronUp className="size-4" /> Abrir painel
                 </button>
-                <div
-                  className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
-                  aria-label="Espaço reservado para publicidade"
-                >
-                  Publicidade
-                </div>
+                <AdSlot />
               </>
             ) : (
             <>
@@ -348,12 +378,7 @@ function Index() {
               ) : null}
               {locMsg && <p className="text-xs text-destructive">{locMsg}</p>}
               {/* Espaço reservado para publicidade (Google AdSense) no futuro */}
-              <div
-                className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
-                aria-label="Espaço reservado para publicidade"
-              >
-                Publicidade
-              </div>
+              <AdSlot />
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -537,6 +562,17 @@ function GroupPanel({
           Ajudar a atualizar esta localização
         </Button>
       )}
+    </div>
+  );
+}
+
+function AdSlot() {
+  return (
+    <div
+      className="grid min-h-14 place-items-center rounded-xl border border-dashed text-[11px] text-muted-foreground"
+      aria-label="Espaço reservado para publicidade"
+    >
+      Publicidade
     </div>
   );
 }
