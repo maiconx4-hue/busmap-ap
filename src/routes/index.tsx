@@ -580,15 +580,13 @@ function AdSlot() {
     }
   }, []);
   return (
-    <div className="min-h-14 overflow-hidden rounded-xl" aria-label="Publicidade">
+    <div className="flex min-h-[50px] justify-center overflow-hidden" aria-label="Publicidade">
       <ins
         ref={ref}
         className="adsbygoogle"
-        style={{ display: "block" }}
+        style={{ display: "inline-block", width: "300px", height: "50px" }}
         data-ad-client="ca-pub-2404280823675572"
-        data-ad-slot="4090081477"
-        data-ad-format="auto"
-        data-full-width-responsive="true"
+        data-ad-slot="0639487540"
       />
     </div>
   );
