@@ -1,3 +1,6 @@
+- [ ] Sincronizar confirmações da RPC nativa sem alterar START_GPS/STOP_GPS/GPS_UPDATE/SESSION_STARTED.
+- [ ] Testar confirmação, expiração, encerramento e compatibilidade com o app atual.
+- [ ] Detalhar os blocos do App Inventor e os limites do GPS em segundo plano.
 - [ ] Calcular movimento agregado com GPS válido por pelo menos 3 minutos, sem expor histórico pessoal.
 - [ ] Mostrar estimativa distinta do GPS real até o fim do trajeto e retomar dados reais compatíveis.
 - [ ] Verificar regras no banco, testes e mapa.
