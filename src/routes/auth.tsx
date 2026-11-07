@@ -22,6 +22,8 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Entrar — BusMap Macapá" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         name: "description",
         content: "Entre ou crie uma conta opcional para guardar seu nível e conquistas.",

@@ -16,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Administração — BusMap Macapá" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "description", content: "Área restrita de administração do BusMap Macapá." },
       { property: "og:title", content: "Administração — BusMap Macapá" },
       { property: "og:description", content: "Área restrita." },

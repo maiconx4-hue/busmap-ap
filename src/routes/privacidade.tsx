@@ -7,6 +7,8 @@ export const Route = createFileRoute("/privacidade")({
   head: () => ({
     meta: [
       { title: "Privacidade — BusMap Macapá" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         name: "description",
         content: "Como o BusMap Macapá coleta, usa e apaga dados de localização, conforme a LGPD.",

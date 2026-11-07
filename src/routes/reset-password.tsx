@@ -10,6 +10,8 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       { title: "Nova senha — BusMap Macapá" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "description", content: "Defina uma nova senha para sua conta BusMap Macapá." },
       { property: "og:title", content: "Nova senha — BusMap Macapá" },
       { property: "og:description", content: "Redefinição de senha." },
