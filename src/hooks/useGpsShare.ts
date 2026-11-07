@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureVisitor, type VisitorCreds } from "@/lib/visitor";
 import { errorCode, friendlyError } from "@/lib/errors";
+import { isCurrentNativeResult, parseNativeRpcResult } from "@/lib/nativeRpc";
 import {
   getBridge,
   parseNativeGps,
@@ -113,6 +114,8 @@ function useGpsShareState() {
   const nativeTimestamp = useRef(0);
   const nativeLastRaw = useRef<string | null>(null);
   const nativePoll = useRef<ReturnType<typeof setInterval> | null>(null);
+  const nativeRpcActive = useRef(false);
+  const nativeRpcTimestamp = useRef(0);
   const receiveNative = useRef<(raw: unknown) => void>(() => {});
   const session = useRef<StartResult | null>(null);
   const lastAckRef = useRef<number | null>(null);
@@ -124,6 +127,8 @@ function useGpsShareState() {
     if (nativePoll.current) clearInterval(nativePoll.current);
     nativePoll.current = null;
     nativeMode.current = false;
+    nativeRpcActive.current = false;
+    nativeRpcTimestamp.current = 0;
     if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
     watchId.current = null;
     if (timer.current) clearInterval(timer.current);
@@ -154,6 +159,8 @@ function useGpsShareState() {
     const timeoutMs = s.timeout_s * 1000;
     // Honest status: if no confirmed update within the timeout, it's not active.
     if (lastAckRef.current && Date.now() - lastAckRef.current > timeoutMs) setStatus("paused");
+    // Web1 takes ownership only after its first valid response. Never duplicate its writes.
+    if (nativeMode.current && nativeRpcActive.current) return;
     if (!pos || Date.now() - pos.timestamp > s.update_interval_s * 3000) return; // no fresh fix
     sending.current = true;
     try {
@@ -166,6 +173,7 @@ function useGpsShareState() {
         p_accuracy: pos.coords.accuracy,
       });
       if (error) throw error;
+      if (session.current?.session_id !== s.session_id || nativeRpcActive.current) return;
       const r = data as {
         accepted: boolean;
         reason: string | null;
@@ -192,6 +200,7 @@ function useGpsShareState() {
       setStatus("active");
       setMessage(null);
     } catch (e) {
+      if (session.current?.session_id !== s.session_id || nativeRpcActive.current) return;
       const code = errorCode(e);
       if (code === "SESSION_ENDED" || code === "SESSION_NOT_FOUND" || code === "INVALID_VISITOR") {
         setStatus("ended");
@@ -314,15 +323,16 @@ function useGpsShareState() {
     setStatus("ended");
     if (!s || !c) return;
     try {
-      const { data } = await supabase.rpc("end_session", {
+      const { data, error } = await supabase.rpc("end_session", {
         p_session: s.session_id,
         p_visitor: c.visitor_id,
         p_secret: c.secret,
       });
+      if (error) throw error;
       setEndResult(data as EndResult);
     } catch {
       setMessage(
-        "Coleta interrompida no aparelho. O servidor encerrará a sessão automaticamente em até 60 segundos.",
+        "Coleta interrompida no aparelho. O servidor encerrará a sessão automaticamente em até " + s.timeout_s + " segundos.",
       );
     }
   }, [cleanup]);
@@ -330,6 +340,29 @@ function useGpsShareState() {
   useEffect(() => {
     const receive = (raw: unknown) => {
       if (!nativeMode.current) return; // only while native sharing was requested
+      const result = parseNativeRpcResult(raw);
+      if (result) {
+        const s = session.current;
+        if (!s || !isCurrentNativeResult(result, s.session_id, nativeRpcTimestamp.current, s.timeout_s, Date.now())) return;
+        nativeRpcTimestamp.current = result.timestamp;
+        if (result.ended) {
+          setStatus("ended");
+          setMessage(result.reason === "OFF_ROUTE"
+            ? "Você se afastou do trajeto da linha, então o compartilhamento foi encerrado automaticamente. Obrigado por contribuir!"
+            : "O compartilhamento foi encerrado pelo servidor.");
+          cleanup();
+          return;
+        }
+        if (result.reason === "RATE_LIMIT") return;
+        nativeRpcActive.current = true;
+        lastAckRef.current = result.timestamp;
+        setLastAck(result.timestamp);
+        setLastReject(result.accepted ? null : result.reason);
+        if (typeof result.contributors === "number") setContributors(result.contributors);
+        setStatus("active");
+        setMessage(null);
+        return;
+      }
       const p = parseNativeGps(raw);
       if (!p || p.timestamp <= nativeTimestamp.current) return; // invalid or repeated
       nativeTimestamp.current = p.timestamp;
@@ -347,10 +380,13 @@ function useGpsShareState() {
     receiveNative.current = receive;
     const fn = (payload: string | NativeGpsPayload) => receive(payload);
     window.busApGpsUpdate = fn;
+    const rpcFn = (payload: unknown) => receive(payload);
+    window.busApRpcResult = rpcFn;
     return () => {
       if (window.busApGpsUpdate === fn) delete window.busApGpsUpdate;
+      if (window.busApRpcResult === rpcFn) delete window.busApRpcResult;
     };
-  }, []);
+  }, [cleanup]);
 
   // Background / visibility / connectivity handling
   useEffect(() => {
@@ -391,10 +427,9 @@ function useGpsShareState() {
         .finally(() => clearSessionId());
     }
     return () => {
-      if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
-      if (timer.current) clearInterval(timer.current);
+      cleanup();
     };
-  }, []);
+  }, [cleanup]);
 
   const reset = useCallback(() => {
     setStatus("idle");
