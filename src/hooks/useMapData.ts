@@ -74,9 +74,9 @@ export const groupsQuery = queryOptions({
 export const settingsQuery = queryOptions({
   queryKey: ["settings"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("settings").select("key,value");
+    const { data, error } = await supabase.rpc("public_settings");
     if (error) throw error;
-    return Object.fromEntries(data.map((r) => [r.key, Number(r.value)])) as Settings;
+    return Object.fromEntries((data ?? []).map((r) => [r.key, Number(r.value)])) as Settings;
   },
   staleTime: 5 * 60_000,
 });
