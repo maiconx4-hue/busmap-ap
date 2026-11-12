@@ -589,6 +589,13 @@ export type Database = {
         }[]
       }
       public_map_groups: { Args: never; Returns: Json }
+      public_settings: {
+        Args: never
+        Returns: {
+          key: string
+          value: number
+        }[]
+      }
       push_update: {
         Args: {
           p_accuracy: number
