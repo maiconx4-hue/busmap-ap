@@ -101,9 +101,24 @@ function AuthPage() {
     toast.success("Se o e-mail existir, você receberá um link para redefinir a senha.");
   };
   const google = async () => {
+    const redirectTo =
+      window.location.origin + "/auth" + (next ? `?next=${encodeURIComponent(next)}` : "");
+    // Supabase próprio (migração): login Google direto pelo Supabase Auth.
+    // Ative com VITE_USE_OWN_SUPABASE="true" no .env. Sem a variável, mantém o login do Lovable Cloud.
+    if (import.meta.env["VITE_USE_OWN_SUPABASE"] === "true") {
+      if (import.meta.env["VITE_GOOGLE_LOGIN"] !== "true") {
+        toast.error("Login com Google ainda não está configurado. Entre com e-mail e senha.");
+        return;
+      }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
+      if (error) toast.error("Não foi possível entrar com Google.");
+      return; // o navegador é redirecionado ao Google
+    }
     const r = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri:
-        window.location.origin + "/auth" + (next ? `?next=${encodeURIComponent(next)}` : ""),
+      redirect_uri: redirectTo,
     });
     if (r.error) {
       toast.error("Não foi possível entrar com Google.");
